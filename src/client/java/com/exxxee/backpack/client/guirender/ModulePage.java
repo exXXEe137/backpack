@@ -22,7 +22,6 @@ public class ModulePage implements Renderable, GuiEventListener {
     private final int tabIndex;
 
     private List<ItemStack> pageInfo;
-
     List<WidgetSlot> widgetSlots = new ArrayList<>();
 
     public ModulePage(int x, int y, List<ItemStack> pageInfo, int tabIndex) {
@@ -37,7 +36,8 @@ public class ModulePage implements Renderable, GuiEventListener {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 9; j++) {
                 int slotIndex = i * 9 + j;
-                this.widgetSlots.add(new WidgetSlot(pageX + 39 - i * 18, pageY + j * 18, pageInfo.get(slotIndex), slotIndex + tabIndex * 27));
+                ItemStack slotInfo = pageInfo.get(slotIndex);
+                this.widgetSlots.add(new WidgetSlot(pageX + 39 - i * 18, pageY + j * 18, slotInfo, slotIndex + tabIndex * 27));
             }
         }
     }

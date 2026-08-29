@@ -1,6 +1,7 @@
 package com.exxxee.backpack.client.guirender;
 
 import com.exxxee.backpack.ExxxeeBackpack;
+import com.exxxee.backpack.api.helper.data.BackpackDataHelper;
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
 import com.exxxee.backpack.Network.paylo.SwitchModulePayload;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -26,7 +26,6 @@ public class ModulesButton extends ImageButton {
     private final PanelWidget panel;
     private final int tabIndex;
     private boolean selected = false;
-    private NonNullList<ItemStack> moduleInfo = NonNullList.withSize(27, ItemStack.EMPTY);
     /** 上一次渲染时的 MODULE_INVENTORY 数据实例;数据不可变,引用变化 == 数据变化 */
     private ModuleInventoryData lastData;
 
@@ -89,19 +88,12 @@ public class ModulesButton extends ImageButton {
     }
 
     public ItemStack getModuleSlot () {
-        List<ItemStack> modules = panel.getSHELF_MODULES();
-        if (tabIndex < modules.size()) {
-            return modules.get(tabIndex);
-        }
-        return ItemStack.EMPTY;
+        ItemStack module = BackpackDataHelper.getModule(panel.getPlayer(), this.tabIndex);
+        return module != null ? module : ItemStack.EMPTY;
     }
 
     public List<ItemStack> getModuleInfo () {
-        ModuleInventoryData info = this.getModuleSlot().get(BackpackDataComponents.MODULE_INVENTORY);
-        if (info != null) {
-            info.items().copyInto(moduleInfo);
-        }
-        return moduleInfo;
+        return BackpackDataHelper.getModuleDataInList(panel.getPlayer(), this.tabIndex);
     }
 
     public boolean slotIsEmpty () {return getModuleSlot().isEmpty();}
