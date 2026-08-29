@@ -24,6 +24,8 @@ public class WidgetSlot extends AbstractWidget {
     private int slotY;
     private int slotIndex;
     private ItemStack slotInfo;
+    /** 按下标记：按下时打 true，释放时是 true 才发包（按下与释放同一槽位） */
+    private boolean pressed;
 
     public WidgetSlot(int x, int y, ItemStack slotInfo, int slotIndex) {
         super(x, y, WIDTH, HEIGHT, CommonComponents.EMPTY);
@@ -50,9 +52,10 @@ public class WidgetSlot extends AbstractWidget {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        // 只放行左右键（原版槽位逻辑同款过滤），侧键中键不触发；shift 时发 shift=1 走快速转移
+        // 按下只打标记，不发包；左右键才接受
         if (event.button() == 0 || event.button() == 1) {
-            ClientPlayNetworking.send(new ModuleIventoryPayload(slotIndex, event.button(), event.hasShiftDown() ? 1 : 0));
+            this.pressed = true;
+//            ClientPlayNetworking.send(new ModuleIventoryPayload(slotIndex, event.button(), event.hasShiftDown() ? 1 : 0));
             return true;
         }
         return false;
@@ -60,9 +63,12 @@ public class WidgetSlot extends AbstractWidget {
 
     @Override
     public boolean mouseReleased (MouseButtonEvent event) {
-//        if (event.button() == 0 || event.button() == 1) {
-//            return true;
-//        }
+        // 释放时按下标记为真（按下与释放同一槽位）才发包；始终消费释放事件，避免原版在 widget 区域误处理
+        if (this.pressed) {
+            this.pressed = false;
+            ClientPlayNetworking.send(new ModuleIventoryPayload(slotIndex, event.button(), event.hasShiftDown() ? 1 : 0));
+            return true;
+        }
         return true;
     }
 

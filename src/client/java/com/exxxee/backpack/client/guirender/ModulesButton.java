@@ -5,7 +5,6 @@ import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
 import com.exxxee.backpack.Network.paylo.SwitchModulePayload;
 import com.exxxee.backpack.item.BackpackItems;
-import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
@@ -16,7 +15,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ModulesButton extends ImageButton {
@@ -29,7 +27,8 @@ public class ModulesButton extends ImageButton {
     private final int tabIndex;
     private boolean selected = false;
     private NonNullList<ItemStack> moduleInfo = NonNullList.withSize(27, ItemStack.EMPTY);
-    List<ItemStack> infoCopy = Lists.newArrayList();
+    /** 上一次渲染时的 MODULE_INVENTORY 数据实例;数据不可变,引用变化 == 数据变化 */
+    private ModuleInventoryData lastData;
 
     ModulePage page;
 
@@ -46,9 +45,11 @@ public class ModulesButton extends ImageButton {
 
     public void pageVisuals () {
         if (this.selected && !this.slotIsEmpty()) {
-            if (page == null || !infoCopy.equals(this.getModuleInfo())) {
+            // 判据:DataComponent 不可变,引用变化 == 数据变化;null(无数据)也会因 lastData==null 而不误重建
+            ModuleInventoryData data = this.getModuleSlot().get(BackpackDataComponents.MODULE_INVENTORY);
+            if (page == null || data != this.lastData) {
                 page = new ModulePage(panel.getLeftPos() - 95, panel.getTopPos(), this.getModuleInfo(), tabIndex);
-                infoCopy = new ArrayList<>(this.getModuleInfo());
+                this.lastData = data;
             }
         } else {
             page = null;
