@@ -45,7 +45,6 @@ public class ModulesButton extends ImageButton {
 
     public void pageVisuals () {
         if (this.selected && !this.slotIsEmpty()) {
-            // 判据:DataComponent 不可变,引用变化 == 数据变化;null(无数据)也会因 lastData==null 而不误重建
             ModuleInventoryData data = this.getModuleSlot().get(BackpackDataComponents.MODULE_INVENTORY);
             if (page == null || data != this.lastData) {
                 page = new ModulePage(panel.getLeftPos() - 95, panel.getTopPos(), this.getModuleInfo(), tabIndex);
