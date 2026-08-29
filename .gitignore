@@ -46,3 +46,7 @@ replay_*.log
 .tmp_mc_extract/
 mc_sources/
 memory/
+
+# build artifacts
+
+*.jar
