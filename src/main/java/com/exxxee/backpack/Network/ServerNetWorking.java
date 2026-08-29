@@ -1,8 +1,10 @@
 package com.exxxee.backpack.Network;
 
 import com.exxxee.backpack.Network.paylo.ModuleDragPayload;
+import com.exxxee.backpack.Network.paylo.ModuleActionPayload;
 import com.exxxee.backpack.Network.paylo.ModuleIventoryPayload;
 import com.exxxee.backpack.Network.paylo.SwitchModulePayload;
+import com.exxxee.backpack.Network.payloadHandler.ModuleActionOperation;
 import com.exxxee.backpack.Network.payloadHandler.DragOperation;
 import com.exxxee.backpack.Network.payloadHandler.ModuleInventoryOperation;
 import com.exxxee.backpack.api.helper.data.BackpackDataHelper;
@@ -25,7 +27,11 @@ public class ServerNetWorking {
         ServerPlayNetworking.registerGlobalReceiver(com.exxxee.backpack.Network.paylo.ModuleIventoryPayload.TYPE, (payload, context) -> moduleHandler(payload, context));
 
         PayloadTypeRegistry.serverboundPlay().register(com.exxxee.backpack.Network.paylo.ModuleDragPayload.TYPE, com.exxxee.backpack.Network.paylo.ModuleDragPayload.STREAM_CODEC);
+        // 拖拽包在服务端主线程执行，避免直接从网络线程修改背包。
         ServerPlayNetworking.registerGlobalReceiver(com.exxxee.backpack.Network.paylo.ModuleDragPayload.TYPE, ((payload, context) -> dragHandler(payload, context)));
+
+        PayloadTypeRegistry.serverboundPlay().register(ModuleActionPayload.TYPE, ModuleActionPayload.STREAM_CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ModuleActionPayload.TYPE, ServerNetWorking::actionHandler);
 
     }
 
@@ -54,8 +60,15 @@ public class ServerNetWorking {
 
     public static void dragHandler (ModuleDragPayload payload, Context context) {
         context.server().execute(()->{
-            dragOperation.Operation(context.player(), payload.dragType(), payload.slots());
+            // sourceSlot 用于“空手从自定义槽位开始拖拽”的场景。
+            dragOperation.Operation(context.player(), payload.dragType(), payload.sourceSlot(), payload.slots());
         });
+    }
+
+    private static final ModuleActionOperation actionOperation = new ModuleActionOperation();
+
+    public static void actionHandler(ModuleActionPayload payload, Context context) {
+        context.server().execute(() -> actionOperation.execute(context.player(), payload));
     }
 
 }

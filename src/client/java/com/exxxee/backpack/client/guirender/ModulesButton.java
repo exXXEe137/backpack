@@ -5,7 +5,6 @@ import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
 import com.exxxee.backpack.Network.paylo.SwitchModulePayload;
 import com.exxxee.backpack.item.BackpackItems;
-import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.ImageButton;
@@ -16,7 +15,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ModulesButton extends ImageButton {
@@ -29,7 +27,6 @@ public class ModulesButton extends ImageButton {
     private final int tabIndex;
     private boolean selected = false;
     private NonNullList<ItemStack> moduleInfo = NonNullList.withSize(27, ItemStack.EMPTY);
-    List<ItemStack> infoCopy = Lists.newArrayList();
 
     ModulePage page;
 
@@ -44,13 +41,19 @@ public class ModulesButton extends ImageButton {
     public void unselect() {this.selected = false;}
     public boolean isSelected() {return selected;}
 
+    // 只在选中模块变化时创建页面，正常 tick 期间复用原有槽位对象。
     public void pageVisuals () {
         if (this.selected && !this.slotIsEmpty()) {
-            if (page == null || !infoCopy.equals(this.getModuleInfo())) {
+            List<ItemStack> currentInfo = this.getModuleInfo();
+            if (page == null) {
                 page = new ModulePage(panel.getLeftPos() - 95, panel.getTopPos(), this.getModuleInfo(), tabIndex);
-                infoCopy = new ArrayList<>(this.getModuleInfo());
+            } else {
+                page.updateItems(currentInfo);
             }
         } else {
+            if (page != null) {
+                page.clearPreview();
+            }
             page = null;
         }
     }
