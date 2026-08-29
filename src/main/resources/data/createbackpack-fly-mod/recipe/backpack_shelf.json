@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "container",
+  "key": {
+    "$": "minecraft:iron_ingot",
+    "#": "minecraft:leather",
+    "@": "minecraft:ender_chest"
+  },
+  "pattern": [
+    "$  ",
+    "$@#",
+    "$$$"
+  ],
+  "result": {
+    "id": "createbackpack-fly-mod:backpacks/backpack_shelf"
+  }
+}

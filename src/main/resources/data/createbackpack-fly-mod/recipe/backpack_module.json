@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "container",
+  "key": {
+    "#": "minecraft:gold_ingot",
+    "$": "minecraft:iron_ingot",
+    "&": "minecraft:shulker_box"
+  },
+  "pattern": [
+    " #$",
+    "#&#",
+    "$# "
+  ],
+  "result": {
+    "id": "createbackpack-fly-mod:backpacks/backpack_module"
+  }
+}
