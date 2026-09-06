@@ -3,8 +3,7 @@
 	"package": "com.exxxee.backpack.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"AbstractContainerScreenMixin",
-		"ClientPacketListenerMixin"
+		"AbstractContainerScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
