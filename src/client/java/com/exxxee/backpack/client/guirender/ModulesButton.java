@@ -46,7 +46,7 @@ public class ModulesButton extends ImageButton {
         if (this.selected && !this.slotIsEmpty()) {
             ModuleInventoryData data = this.getModuleSlot().get(BackpackDataComponents.MODULE_INVENTORY);
             if (page == null || data != this.lastData) {
-                page = new ModulePage(panel.getLeftPos() - 95, panel.getTopPos(), this.getModuleInfo(), tabIndex);
+                page = new ModulePage(panel.getLeftPos() - 95, panel.getTopPos(), this.getModuleInfo(), tabIndex, WidgetSlot::new);
                 this.lastData = data;
             }
         } else {

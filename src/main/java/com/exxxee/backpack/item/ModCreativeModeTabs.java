@@ -18,7 +18,7 @@ public class ModCreativeModeTabs {
 
     public static final CreativeModeTab CREATEBACKPACK = FabricCreativeModeTab.builder()
             .icon(() -> new ItemStack(BackpackItems.BACKPACK_SHELF))
-            .title(Component.translatable("itemGroup.createbackpack-fly-mod"))
+            .title(Component.translatable("itemGroup.exxxeebackpack"))
             .displayItems((parameters, output) -> {
                 output.accept(BackpackItems.BACKPACK_SHELF);
                 output.accept(BackpackItems.BACKPACK_MODULE);

@@ -1,5 +1,7 @@
 package com.exxxee.backpack.client.guirender;
 
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.api.helper.data.BackpackDataHelper;
 import com.exxxee.backpack.item.BackpackItems;
 import com.google.common.collect.Lists;
@@ -18,6 +20,7 @@ import java.util.function.Consumer;
 
 public class PanelWidget implements Renderable, GuiEventListener {
 
+    private AbstractBackpackMenu shelfMenu;
     private List<ModulesButton> modulesButtons = Lists.<ModulesButton>newArrayList();
     private int topPos;
     private int bottomPos;
@@ -27,14 +30,14 @@ public class PanelWidget implements Renderable, GuiEventListener {
     @Nullable
     private ModulesButton selectedTab;
 
-    public PanelWidget(int leftPos, int topPos) {
+    public PanelWidget(int leftPos, int topPos, AbstractBackpackMenu menu) {
         this.leftPos = leftPos;
         this.topPos = topPos;
+        this.shelfMenu = menu;
     }
 
     public void tick () {
-        boolean hasShelf = BackpackDataHelper.hasShelf(getPlayer());
-        if (hasShelf) {
+        if (shelfMenu != null) {
             if (modulesButtons.isEmpty()) {
                 tabVisuals();
             }
@@ -45,7 +48,7 @@ public class PanelWidget implements Renderable, GuiEventListener {
             for (ModulesButton button : modulesButtons) {
                 button.pageVisuals();
             }
-        } else if (!hasShelf) {
+        }else if (shelfMenu == null) {
             modulesButtons.clear();
             selectedTab = null;
         }

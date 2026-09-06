@@ -8,6 +8,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -20,9 +21,10 @@ import java.util.function.Function;
 public class BackpackItems {
 
     //物品注册列表
-    public static  final Item BACKPACK_SHELF = registerItem("backpacks/backpack_shelf",new Item.Properties().stacksTo(1).equippable(net.minecraft.world.entity.EquipmentSlot.CHEST).component(BackpackDataComponents.SHELF_MODULES, new ArrayList<>(Collections.nCopies(4, ItemStack.EMPTY))));
-    public static  final Item BACKPACK_MODULE = registerItem("backpacks/backpack_module",new Item.Properties().stacksTo(1).component(BackpackDataComponents.MODULE_INVENTORY, ModuleInventoryData.EMPTY));
+    public static final Item BACKPACK_SHELF = registerItem("backpacks/backpack_shelf",new Item.Properties().stacksTo(1).equippable(net.minecraft.world.entity.EquipmentSlot.CHEST).component(BackpackDataComponents.SHELF_MODULES, new ArrayList<>(Collections.nCopies(4, ItemStack.EMPTY))));
+    public static final Item BACKPACK_MODULE = registerItem("backpacks/backpack_module",new Item.Properties().stacksTo(1).component(BackpackDataComponents.MODULE_INVENTORY, ModuleInventoryData.EMPTY));
 
+    public static final TagKey<Item> MODULE = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID, "modules"));
 
     //物品注册方法
     private static Item registerItem(final String name, final Function<Item.Properties, Item> itemFactory, final Item.Properties properties) {
