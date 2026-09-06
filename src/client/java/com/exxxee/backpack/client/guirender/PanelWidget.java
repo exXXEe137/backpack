@@ -1,6 +1,8 @@
 package com.exxxee.backpack.client.guirender;
 
-import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.api.IBackpackHost;
+import com.exxxee.backpack.api.helper.data.BackpackDataHelper;
 import com.exxxee.backpack.item.BackpackItems;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
@@ -9,7 +11,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +20,7 @@ import java.util.function.Consumer;
 
 public class PanelWidget implements Renderable, GuiEventListener {
 
+    private AbstractBackpackMenu shelfMenu;
     private List<ModulesButton> modulesButtons = Lists.<ModulesButton>newArrayList();
     private int topPos;
     private int bottomPos;
@@ -28,14 +30,14 @@ public class PanelWidget implements Renderable, GuiEventListener {
     @Nullable
     private ModulesButton selectedTab;
 
-    public PanelWidget(int leftPos, int topPos) {
+    public PanelWidget(int leftPos, int topPos, AbstractBackpackMenu menu) {
         this.leftPos = leftPos;
         this.topPos = topPos;
+        this.shelfMenu = menu;
     }
 
     public void tick () {
-        boolean hasShelf = this.getChest().getItem() == BackpackItems.BACKPACK_SHELF;
-        if (hasShelf) {
+        if (shelfMenu != null) {
             if (modulesButtons.isEmpty()) {
                 tabVisuals();
             }
@@ -46,14 +48,14 @@ public class PanelWidget implements Renderable, GuiEventListener {
             for (ModulesButton button : modulesButtons) {
                 button.pageVisuals();
             }
-        } else if (!hasShelf) {
+        }else if (shelfMenu == null) {
             modulesButtons.clear();
             selectedTab = null;
         }
     }
 
     public void tabVisuals () {
-        if (this.getChest().getItem() == BackpackItems.BACKPACK_SHELF) {
+        if (BackpackDataHelper.hasShelf(getPlayer())) {
         for (int tabIndex = 0; tabIndex < 4; tabIndex++) {
             this.modulesButtons.add(new ModulesButton(leftPos - 32, topPos + tabIndex * 20, tabIndex, this::onTabButtonPress, this));
             }
@@ -132,11 +134,7 @@ public class PanelWidget implements Renderable, GuiEventListener {
     public Player getPlayer() {return Minecraft.getInstance().player;}
 
     /**模块插槽slot相关*/
-    public ItemStack getChest () {return  getPlayer().getItemBySlot(EquipmentSlot.CHEST);}
-    public List<ItemStack> getSHELF_MODULES () {
-        List<ItemStack> modules = getChest().get(BackpackDataComponents.SHELF_MODULES);
-        return modules != null ? modules : List.of();
-    }
+    public ItemStack getChest () {return BackpackDataHelper.getBackpack(getPlayer());}
 
     /**鼠标手持carried物品相关方法*/
     public ItemStack carriedItemStack () {return getPlayer().containerMenu.getCarried();}

@@ -4,8 +4,12 @@
     "compatibilityLevel": "JAVA_25",
     "mixins": [
         "InventoryMixin",
-        "AbstractContainerMenuAccessor"
-    	],
+        "AbstractContainerMenuAccessor",
+        "PlayerMixin",
+        "ServerPlayerMixin",
+        "LivingEntityMixin",
+        "SlotAccessor"
+    ],
     "injectors": {
         "defaultRequire": 1
     },

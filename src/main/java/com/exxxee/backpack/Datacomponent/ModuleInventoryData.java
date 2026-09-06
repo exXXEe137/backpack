@@ -7,6 +7,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 
+import java.util.List;
+
 public record ModuleInventoryData(ItemContainerContents items) {
 
     public static final Codec<ModuleInventoryData> CODEC = ItemContainerContents.CODEC.xmap(ModuleInventoryData::new,ModuleInventoryData::items );
@@ -23,7 +25,7 @@ public record ModuleInventoryData(ItemContainerContents items) {
     }
 
     // 写:27 格列表 → 造新实例(record 不可变,所以是静态工厂,不是 setter)
-    public static ModuleInventoryData fromList (NonNullList<ItemStack> list) {
+    public static ModuleInventoryData fromList (List<ItemStack> list) {
         return new ModuleInventoryData(ItemContainerContents.fromItems(list));
     }
 
