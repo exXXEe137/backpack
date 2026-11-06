@@ -3,16 +3,16 @@
   "category": "misc",
   "group": "container",
   "key": {
+    "#": "minecraft:gold_ingot",
     "$": "minecraft:iron_ingot",
-    "#": "minecraft:leather",
-    "@": "minecraft:ender_chest"
+    "&": "minecraft:shulker_box"
   },
   "pattern": [
-    "$  ",
-    "$@#",
-    "$$$"
+    " #$",
+    "#&#",
+    "$# "
   ],
   "result": {
-    "id": "createbackpack-fly-mod:backpacks/backpack_shelf"
+    "id": "exxxeebackpack:backpacks/backpack_module"
   }
 }
