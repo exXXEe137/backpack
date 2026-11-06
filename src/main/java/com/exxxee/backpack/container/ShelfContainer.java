@@ -1,21 +1,36 @@
 package com.exxxee.backpack.container;
 
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
+import com.exxxee.backpack.item.BackpackItems;
+import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.exxxee.backpack.item.BackpackItems.MODULE;
 
 public class ShelfContainer implements Container {
 
-    private final ItemStack itemStack;
+    private final Player player;
+    private final ItemStack shelf;
+    private final NonNullList<ItemStack> items;
 
-    public ShelfContainer(ItemStack stack) {
-        this.itemStack = stack;
+    public ShelfContainer(Player player) {
+        this.player = player;
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        this.shelf = chest.is(BackpackItems.BACKPACK_SHELF) ? chest : ItemStack.EMPTY;
+        List<ItemStack> modules = this.shelf.getOrDefault(BackpackDataComponents.SHELF_MODULES, List.of());
+        int size = modules == null ? 0 : modules.size();
+        this.items = NonNullList.withSize(size, ItemStack.EMPTY);
+        if (modules != null) {
+            for (int i = 0; i < size; i++) {
+                this.items.set(i, modules.get(i).copy());
+            }
+        }
     }
 
     @Override
@@ -25,7 +40,7 @@ public class ShelfContainer implements Container {
 
     @Override
     public int getContainerSize() {
-        return itemStack.get(BackpackDataComponents.SHELF_MODULES).size();
+        return this.items.size();
     }
 
     @Override
@@ -38,7 +53,17 @@ public class ShelfContainer implements Container {
 
     @Override
     public ItemStack getItem(int slot) {
-        return itemStack.get(BackpackDataComponents.SHELF_MODULES).get(slot);
+        return slot >= 0 && slot < this.items.size() ? this.items.get(slot) : ItemStack.EMPTY;
+    }
+
+    @Override
+    public void setItem(int slot, ItemStack stack) {
+        if (slot < 0 || slot >= this.items.size() || this.shelf.isEmpty()) return;
+        this.items.set(slot, stack);
+        this.shelf.set(BackpackDataComponents.SHELF_MODULES, this.items);
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(serverPlayer.getInventory().createInventoryUpdatePacket(EquipmentSlot.CHEST.getIndex(36)));
+        }
     }
 
     @Override
@@ -49,20 +74,12 @@ public class ShelfContainer implements Container {
         setItem(slot, current.isEmpty() ? ItemStack.EMPTY : current);
         return taken;
     }
-
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
         ItemStack current = getItem(slot);
         if (current.isEmpty()) return ItemStack.EMPTY;
         setItem(slot, ItemStack.EMPTY);
         return current;
-    }
-
-    @Override
-    public void setItem(int slot, ItemStack stack) {
-        List<ItemStack> list = new ArrayList<>(itemStack.get(BackpackDataComponents.SHELF_MODULES));
-        list.set(slot, stack);
-        itemStack.set(BackpackDataComponents.SHELF_MODULES, list);
     }
 
     @Override

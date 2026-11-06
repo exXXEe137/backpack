@@ -7,6 +7,7 @@ import net.minecraft.CrashReportCategory;
 import net.minecraft.CrashReportDetail;
 import net.minecraft.ReportedException;
 import net.minecraft.core.NonNullList;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,6 +28,7 @@ import static net.minecraft.world.inventory.AbstractContainerMenu.*;
 public abstract class AbstractBackpackMenu {
 
     protected final Player player;
+    public final int windowId;
     public final NonNullList<Slot> slots = NonNullList.create();
 
     private int quickcraftStatus;
@@ -34,7 +36,8 @@ public abstract class AbstractBackpackMenu {
     @Nullable
     private int quickcraftType = 0;
 
-    protected AbstractBackpackMenu(Player player) {
+    protected AbstractBackpackMenu(int windowId, Player player) {
+        this.windowId = windowId;
         this.player = player;
     }
 
@@ -145,7 +148,7 @@ public abstract class AbstractBackpackMenu {
         this.quickcraftStatus = 0;
         this.quickcraftSlots.clear();
     }
-    private boolean canDragTo (final Slot slot) {
+    public boolean canDragTo (final Slot slot) {
         return true;
     }
 
@@ -343,11 +346,27 @@ public abstract class AbstractBackpackMenu {
 
 //=======================================================================================================================//
 
-    private ItemStack getCarried () {
+    public ItemStack getCarried () {
         return player.containerMenu.getCarried();
     }
     private void setCarried (ItemStack itemStack) {
         player.containerMenu.setCarried(itemStack);
+    }
+
+    public static boolean canItemQuickReplace(@org.jspecify.annotations.Nullable final Slot slot, final ItemStack itemStack, final boolean ignoreSize) {
+        boolean slotIsEmpty = slot == null || !slot.hasItem();
+        return !slotIsEmpty && ItemStack.isSameItemSameComponents(itemStack, slot.getItem())
+                ? slot.getItem().getCount() + (ignoreSize ? 0 : itemStack.getCount()) <= itemStack.getMaxStackSize()
+                : slotIsEmpty;
+    }
+
+    public static int getQuickCraftPlaceCount(final int quickCraftSlotsSize, final int quickCraftingType, final ItemStack itemStack) {
+        return switch (quickCraftingType) {
+            case 0 -> Mth.floor((float)itemStack.getCount() / quickCraftSlotsSize);
+            case 1 -> 1;
+            case 2 -> itemStack.getMaxStackSize();
+            default -> itemStack.getCount();
+        };
     }
 
 }

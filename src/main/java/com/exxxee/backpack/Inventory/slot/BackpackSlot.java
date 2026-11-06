@@ -1,7 +1,8 @@
 package com.exxxee.backpack.Inventory.slot;
 
-import com.exxxee.backpack.api.helper.data.BackpackDataHelper;
+import com.exxxee.backpack.item.BackpackItems;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 
@@ -16,7 +17,7 @@ public class BackpackSlot extends Slot {
 
     @Override
     public boolean isActive() {
-        return BackpackDataHelper.hasShelf(player);
+        return player.getItemBySlot(EquipmentSlot.CHEST).is(BackpackItems.BACKPACK_SHELF);
     }
 
 }
