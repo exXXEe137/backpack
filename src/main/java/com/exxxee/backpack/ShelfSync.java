@@ -8,6 +8,7 @@ import com.exxxee.backpack.Network.payload.ShelfContentPayload;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.api.WindowIdIssuer;
 import com.exxxee.backpack.container.ShelfContainer;
+import net.minecraft.world.Container;
 import com.exxxee.backpack.item.BackpackItems;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,9 +35,18 @@ public final class ShelfSync {
             return;
         }
         if (current == null) return;
+        flush(current);
         int windowId = current.windowId;
         host.setShelfMenu(null);
         ServerPlayNetworking.send(player, new CloseWindowPayload(windowId));
+    }
+
+    private static void flush(AbstractBackpackMenu menu) {
+        if (menu.slots.isEmpty()) return;
+        Container container = menu.slots.get(0).container;
+        if (container instanceof ShelfContainer shelf) {
+            shelf.flush();
+        }
     }
 
     private static void sendOpen(ServerPlayer player, AbstractBackpackMenu menu) {

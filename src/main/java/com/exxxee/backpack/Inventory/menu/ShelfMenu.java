@@ -4,6 +4,7 @@ import com.exxxee.backpack.Inventory.slot.BackpackSlot;
 import com.exxxee.backpack.container.ShelfContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class ShelfMenu extends AbstractBackpackMenu {
@@ -15,7 +16,7 @@ public class ShelfMenu extends AbstractBackpackMenu {
     public ShelfMenu(int windowId, Player player, Container container) {
         super(windowId, player);
         for (int i = 0; i < container.getContainerSize(); i++) {
-            slots.add(new BackpackSlot(player, container, i, 4, 8 + i * 18));
+            this.addSlot(new Slot(container, i, 4, 8 + i * 18));
         }
     }
 

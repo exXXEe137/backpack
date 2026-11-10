@@ -9,6 +9,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.exxxee.backpack.item.BackpackItems.MODULE;
@@ -58,12 +59,31 @@ public class ShelfContainer implements Container {
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        if (slot < 0 || slot >= this.items.size() || this.shelf.isEmpty()) return;
+        if (slot < 0 || slot >= this.items.size()) return;
         this.items.set(slot, stack);
-        this.shelf.set(BackpackDataComponents.SHELF_MODULES, this.items);
-        if (player instanceof ServerPlayer serverPlayer) {
+        this.flush();
+    }
+
+    public void flush() {
+        ItemStack holder = this.moduleHolder();
+        if (holder.isEmpty()) return;
+        List<ItemStack> snapshot = new ArrayList<>(this.items.size());
+        for (int i = 0; i < this.items.size(); i++) {
+            snapshot.add(this.items.get(i).copy());
+        }
+        holder.set(BackpackDataComponents.SHELF_MODULES, snapshot);
+        if (!(this.player instanceof ServerPlayer serverPlayer)) return;
+        ItemStack chest = serverPlayer.getItemBySlot(EquipmentSlot.CHEST);
+        if (chest == holder) {
             serverPlayer.connection.send(serverPlayer.getInventory().createInventoryUpdatePacket(EquipmentSlot.CHEST.getIndex(36)));
         }
+        serverPlayer.containerMenu.broadcastChanges();
+    }
+
+    private ItemStack moduleHolder() {
+        ItemStack chest = this.player.getItemBySlot(EquipmentSlot.CHEST);
+        if (chest.is(BackpackItems.BACKPACK_SHELF)) return chest;
+        return this.shelf.is(BackpackItems.BACKPACK_SHELF) ? this.shelf : ItemStack.EMPTY;
     }
 
     @Override

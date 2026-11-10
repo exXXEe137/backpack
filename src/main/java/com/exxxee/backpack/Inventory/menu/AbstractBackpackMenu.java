@@ -1,7 +1,10 @@
 package com.exxxee.backpack.Inventory.menu;
 
 import com.exxxee.backpack.mixin.SlotAccessor;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.CrashReportDetail;
@@ -12,13 +15,11 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickAction;
-import net.minecraft.world.inventory.ContainerInput;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -29,12 +30,19 @@ public abstract class AbstractBackpackMenu {
 
     protected final Player player;
     public final int windowId;
+    private final NonNullList<ItemStack> lastSlots = NonNullList.create();
     public final NonNullList<Slot> slots = NonNullList.create();
+    private final List<DataSlot> dataSlots = Lists.<DataSlot>newArrayList();
+    private final NonNullList<RemoteSlot> remoteSlots = NonNullList.create();
+    private final IntList remoteDataSlots = new IntArrayList();
 
     private int quickcraftStatus;
     private final Set<Slot> quickcraftSlots = Sets.<Slot>newHashSet();
     @Nullable
     private int quickcraftType = 0;
+    @Nullable
+    private ContainerSynchronizer synchronizer;
+
 
     protected AbstractBackpackMenu(int windowId, Player player) {
         this.windowId = windowId;
@@ -344,6 +352,28 @@ public abstract class AbstractBackpackMenu {
         return true;
     }
 
+//==============================================================================================================//
+
+    protected Slot addSlot(final Slot slot) {
+        slot.index = this.slots.size();
+        this.slots.add(slot);
+        this.lastSlots.add(ItemStack.EMPTY);
+        this.remoteSlots.add(this.synchronizer != null ? this.synchronizer.createSlot() : RemoteSlot.PLACEHOLDER);
+        return slot;
+    }
+
+    protected DataSlot addDataSlot(final DataSlot dataSlot) {
+        this.dataSlots.add(dataSlot);
+        this.remoteDataSlots.add(0);
+        return dataSlot;
+    }
+
+    protected void addDataSlots(final ContainerData container) {
+        for (int i = 0; i < container.getCount(); i++) {
+            this.addDataSlot(DataSlot.forContainer(container, i));
+        }
+    }
+
 //=======================================================================================================================//
 
     public ItemStack getCarried () {
@@ -367,6 +397,11 @@ public abstract class AbstractBackpackMenu {
             case 2 -> itemStack.getMaxStackSize();
             default -> itemStack.getCount();
         };
+    }
+
+
+    public static int getQuickcraftMask(final int header, final int type) {
+        return header & 3 | (type & 3) << 2;
     }
 
 }

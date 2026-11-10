@@ -26,10 +26,12 @@ public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
     @Shadow
     @Final
     public InventoryMenu inventoryMenu;
+
+    @Unique
+    private int windowCounter;
     @Unique
     public AbstractBackpackMenu shelfMenu;
     @Unique
-    private int windowCounter;
     public List<AbstractBackpackMenu> moduleMenus = new ArrayList<>(4);
 
     @Inject(method = "<init>", at = @At("TAIL"))

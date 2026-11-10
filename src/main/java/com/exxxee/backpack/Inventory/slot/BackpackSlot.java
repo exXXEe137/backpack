@@ -10,8 +10,8 @@ public class BackpackSlot extends Slot {
 
     private final Player player;
 
-    public BackpackSlot(Player player, Container container, int slot, int x, int y) {
-        super(container, slot, x, y);
+    public BackpackSlot(Player player, Container container, int slotindex, int x, int y) {
+        super(container, slotindex, x, y);
         this.player = player;
     }
 

@@ -5,19 +5,8 @@ import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.Inventory.menu.WindowBuiltInRegistries;
 import com.exxxee.backpack.Inventory.menu.WindowMenuType;
 import com.exxxee.backpack.api.IBackpackHost;
-import com.exxxee.backpack.client.mixin.AbstractContainerScreenMixin;
-import com.exxxee.backpack.mixin.PlayerMixin;
 import com.google.common.collect.Maps;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 

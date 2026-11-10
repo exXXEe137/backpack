@@ -70,18 +70,28 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, She
         this.shelfWindow.extractRenderState(graphics, mouseX, mouseY, a);
     }
 
-    @Inject(method = "mouseClicked", at = @At("TAIL"))
+    @Inject(method = "mouseClicked", at = @At("HEAD"),  cancellable = true)
     public void backpack$mouseClicked (MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-
+        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
+            cir.setReturnValue(this.shelfWindow.mouseClicked(event, doubleClick));
+        }
     }
 
-    @Inject(method = "mouseReleased", at = @At("TAIL"))
+    @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void backpack$mouseReleased (MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
+        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
+            cir.setReturnValue(this.shelfWindow.mouseReleased(event));
+        }
     }
-
-    @Inject(method = "mouseDragged", at = @At("TAIL"))
-    public void backpack$mouseDeagged (MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
-
-    }
+//
+//    @Inject(method = "mouseDragged", at = @At("TAIL"))
+//    public void backpack$mouseDragged (MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
+//
+//    }
+//
+//    @Inject(method = "mouseScrolled", at = @At("TAIL"))
+//    public void backpack$mouseScrolled (double x, double y, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
+//
+//    }
 
 }
