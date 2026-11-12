@@ -4,14 +4,12 @@ import net.minecraft.world.entity.player.Player;
 
 public class WindowMenuType<T extends AbstractBackpackMenu> {
 
-    public static final WindowMenuType<ShelfMenu> GENERIC_1x4 = register("generic_1x4", ShelfMenu::new);
+    public static final WindowMenuType<ShelfMenu> GENERIC_1x4 = new WindowMenuType<>(ShelfMenu::new);
 
     private final MenuSupplier<T> constructor;
 
-    private static <T extends AbstractBackpackMenu> WindowMenuType<T> register(final String name, MenuSupplier<T> constructor) {
-        WindowMenuType<T> type = new WindowMenuType<>(constructor);
-        WindowBuiltInRegistries.MENU.put(name, type);
-        return type;
+    public static void register() {
+        WindowBuiltInRegistries.MENU.put("generic_1x4", GENERIC_1x4);
     }
 
     private WindowMenuType(MenuSupplier<T> constructor) {
@@ -19,7 +17,9 @@ public class WindowMenuType<T extends AbstractBackpackMenu> {
     }
 
     public T create(int windowId, Player player) {
-        return this.constructor.create(windowId, player);
+        T menu = this.constructor.create(windowId, player);
+        menu.menuType = this;
+        return menu;
     }
 
     public interface MenuSupplier<T extends AbstractBackpackMenu> {

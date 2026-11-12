@@ -4,10 +4,7 @@ import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
 import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.api.IBackpackHost;
-import com.exxxee.backpack.client.gui.windows.MenuWindows;
-import com.exxxee.backpack.client.gui.windows.ModuleWindow;
-import com.exxxee.backpack.client.gui.windows.ShelfWindow;
-import com.exxxee.backpack.client.gui.windows.ShelfWindowHost;
+import com.exxxee.backpack.client.gui.windows.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -24,40 +21,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Mixin(AbstractContainerScreen.class)
-public abstract class AbstractContainerScreenMixin implements IBackpackHost, ShelfWindowHost {
+public abstract class AbstractContainerScreenMixin implements IBackpackHost, BackpackWindowHost {
 
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
+    @Unique private final List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
+    @Unique private final List<AbstractBackpackWindows<?>> backpackWindows = new ArrayList<>();
 
-    @Unique private ShelfMenu shelfMenu;
-    @Unique private ShelfWindow shelfWindow;
-    @Unique private List<ModuleMenu> moduleMenus  = new ArrayList<>(4);
-    @Unique private List<ModuleWindow> moduleWindows  = new ArrayList<>(4);
-
-    @Override public AbstractBackpackMenu getShelfMenu() {
-        return this.shelfMenu;
-    }
-    @Override public void setShelfMenu(AbstractBackpackMenu menu) {
-        this.shelfMenu = (ShelfMenu)menu;
-    }
-    @Override public AbstractBackpackMenu getModuleMenu(int index) {
-        return this.moduleMenus.get(index);
-    }
-    @Override public void setModuleMenu(AbstractBackpackMenu menu, int index) {
-        this.moduleMenus.set(index, (ModuleMenu) menu);
+    @Override public List<AbstractBackpackMenu> getBackpackMenus() {
+        return this.backpackMenus;
     }
 
-    @Override public void setShelfWindow (ShelfWindow window) {
-        this.shelfWindow = (ShelfWindow)window;
+    @Override public AbstractBackpackMenu getBackpackMenu (int windowId) {
+        if (windowId < 0 || windowId >= this.backpackMenus.size()) return null;
+        return this.backpackMenus.get(windowId);
     }
+
+    @Override public void setBackpackMenu (int windowId, AbstractBackpackMenu backpackMenu) {
+        while (this.backpackMenus.size() <= windowId) {
+            this.backpackMenus.add(null);
+        }
+        this.backpackMenus.set(windowId, backpackMenu);
+    }
+
+    @Override public void setBackpackWindow(int windowId, AbstractBackpackWindows<?> window) {
+        while (this.backpackWindows.size() <= windowId) {
+            this.backpackWindows.add(null);
+        }
+        this.backpackWindows.set(windowId, window);
+    }
+
 
     @Inject(method = "init", at = @At("TAIL"))
     public void backpack$init (CallbackInfo ci) {
-        if (this.shelfWindow != null) return;
-        AbstractBackpackMenu menu = ((IBackpackHost) Minecraft.getInstance().player).getShelfMenu();
-        if (menu == null) return;
-        this.shelfWindow = MenuWindows.shelf(menu);
-        this.shelfMenu = (ShelfMenu) menu;
+        for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
+            if (menu == null) continue;
+            if (menu.windowId < this.backpackWindows.size() && this.backpackWindows.get(menu.windowId) != null)
+                continue;
+            AbstractBackpackWindows<?> window = MenuWindows.window(menu);
+            if (window == null) continue;
+            this.setBackpackWindow(menu.windowId, window);
+        }
+
+//        if (this.shelfWindow != null) return;
+//        AbstractBackpackMenu menu = ((IBackpackHost) Minecraft.getInstance().player).getShelfMenu();
+//        if (menu == null) return;
+//        this.shelfWindow = MenuWindows.shelf(menu);
+//        this.shelfMenu = (ShelfMenu) menu;
+
     }
 
     @Inject(method = "containerTick", at = @At("TAIL"))
@@ -65,23 +76,42 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, She
 
     @Inject(method = "extractContents", at = @At("TAIL"))
     public void backpack$extractRenderState (GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-        if (this.shelfWindow == null) return;
-        this.shelfWindow.init(this.leftPos, this.topPos);
-        this.shelfWindow.extractRenderState(graphics, mouseX, mouseY, a);
+        for (AbstractBackpackWindows<?> window : backpackWindows) {
+            if (window != null) {
+                window.init(this.leftPos, this.topPos);
+                window.extractRenderState(graphics, mouseX, mouseY, a);
+            }
+        }
+
+//        if (this.shelfWindow == null) return;
+//        this.shelfWindow.init(this.leftPos, this.topPos);
+//        this.shelfWindow.extractRenderState(graphics, mouseX, mouseY, a);
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"),  cancellable = true)
     public void backpack$mouseClicked (MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
-            cir.setReturnValue(this.shelfWindow.mouseClicked(event, doubleClick));
+        for (AbstractBackpackWindows<?> window : backpackWindows) {
+            if (window != null && window.isMouseOver(event.x(), event.y())) {
+                cir.setReturnValue(window.mouseClicked(event, doubleClick));
+            }
         }
+
+//        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
+//            cir.setReturnValue(this.shelfWindow.mouseClicked(event, doubleClick));
+//        }
     }
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void backpack$mouseReleased (MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
-        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
-            cir.setReturnValue(this.shelfWindow.mouseReleased(event));
+        for (AbstractBackpackWindows<?> window : backpackWindows) {
+            if (window != null && window.isMouseOver(event.x(), event.y())) {
+                cir.setReturnValue(window.mouseReleased(event));
+            }
         }
+
+//        if (this.shelfWindow != null && this.shelfWindow.isMouseOver(event.x(), event.y())) {
+//            cir.setReturnValue(this.shelfWindow.mouseReleased(event));
+//        }
     }
 //
 //    @Inject(method = "mouseDragged", at = @At("TAIL"))

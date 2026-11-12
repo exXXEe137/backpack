@@ -30,6 +30,7 @@ public abstract class AbstractBackpackMenu {
 
     protected final Player player;
     public final int windowId;
+    public WindowMenuType<?> menuType;
     private final NonNullList<ItemStack> lastSlots = NonNullList.create();
     public final NonNullList<Slot> slots = NonNullList.create();
     private final List<DataSlot> dataSlots = Lists.<DataSlot>newArrayList();

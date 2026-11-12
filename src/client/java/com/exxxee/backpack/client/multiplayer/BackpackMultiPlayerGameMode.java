@@ -22,7 +22,7 @@ import static com.exxxee.backpack.ExxxeeBackpack.LOGGER;
 public class BackpackMultiPlayerGameMode {
 
     public static void handleContainerInput(final int windowId, final int slotNum, final int buttonNum, final ContainerInput containerInput, final Player player) {
-        AbstractBackpackMenu bakcpackMenu = ((IBackpackHost)player).getShelfMenu();
+        AbstractBackpackMenu bakcpackMenu = ((IBackpackHost)player).getBackpackMenu(windowId);
         if (windowId != bakcpackMenu.windowId) {
             LOGGER.warn("Ignoring click in mismatching window. Click in {}, player has {}.", windowId, bakcpackMenu.windowId);
         } else {

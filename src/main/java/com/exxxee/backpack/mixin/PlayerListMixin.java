@@ -1,6 +1,6 @@
 package com.exxxee.backpack.mixin;
 
-import com.exxxee.backpack.ShelfSync;
+import com.exxxee.backpack.EquippedWindows;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -17,14 +17,14 @@ public class PlayerListMixin {
 
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
     private void backpack$placeNewPlayer(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
-        ShelfSync.sync(player);
+        EquippedWindows.sync(player);
     }
 
     @Inject(method = "respawn", at = @At("RETURN"))
     private void backpack$respawn(ServerPlayer oldPlayer, boolean keepAllPlayerData, Entity.RemovalReason removalReason, CallbackInfoReturnable<ServerPlayer> cir) {
         ServerPlayer player = cir.getReturnValue();
         if (player != null) {
-            ShelfSync.sync(player);
+            EquippedWindows.sync(player);
         }
     }
 }

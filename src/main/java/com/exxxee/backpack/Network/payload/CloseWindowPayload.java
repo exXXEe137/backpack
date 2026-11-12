@@ -6,7 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
-public record CloseWindowPayload (int window) implements CustomPacketPayload{
+public record CloseWindowPayload (int windowId) implements CustomPacketPayload{
 
     public static final StreamCodec<FriendlyByteBuf, CloseWindowPayload> STREAM_CODEC = CustomPacketPayload.codec(CloseWindowPayload::write, CloseWindowPayload::new);
 
@@ -17,7 +17,7 @@ public record CloseWindowPayload (int window) implements CustomPacketPayload{
     }
 
     private void write(final FriendlyByteBuf output) {
-        output.writeVarInt(this.window);
+        output.writeVarInt(this.windowId);
     }
 
 

@@ -3,7 +3,7 @@ package com.exxxee.backpack.mixin;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Network.payload.CloseWindowPayload;
 import com.exxxee.backpack.Network.payload.OpenWindowPayload;
-import com.exxxee.backpack.Network.payload.ShelfContentPayload;
+import com.exxxee.backpack.Network.payload.WindowContentPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.Slot;
@@ -45,7 +45,7 @@ public abstract class ServerPlayerMixin extends PlayerMixin {
     //     for (Slot slot : shelfMenu.slots) {
     //         items.add(slot.getItem().copy());
     //     }
-    //     ServerPlayNetworking.send(player, new ShelfContentPayload(items));
+    //     ServerPlayNetworking.send(player, new WindowContentPayload(items));
     // }
 
 }

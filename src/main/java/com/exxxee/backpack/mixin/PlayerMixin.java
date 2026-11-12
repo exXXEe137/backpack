@@ -6,7 +6,6 @@ import com.exxxee.backpack.api.WindowIdIssuer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
-import org.apache.commons.io.input.TailerListener;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,35 +20,32 @@ import java.util.List;
 @Mixin(Player.class)
 public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
 
+    @Shadow public AbstractContainerMenu containerMenu;
     @Shadow
-    public AbstractContainerMenu containerMenu;
-    @Shadow
-    @Final
-    public InventoryMenu inventoryMenu;
+    @Final public InventoryMenu inventoryMenu;
 
-    @Unique
-    private int windowCounter;
-    @Unique
-    public AbstractBackpackMenu shelfMenu;
-    @Unique
-    public List<AbstractBackpackMenu> moduleMenus = new ArrayList<>(4);
+    @Unique private int windowCounter;
+    @Unique private List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void backpack$onInit(CallbackInfo ci) {
-        this.shelfMenu = null;
-        for (int i = 0; i < 4; i++) {
-            moduleMenus.add(null);
+        this.backpackMenus.clear();
+    }
+
+    @Unique public List<AbstractBackpackMenu> getBackpackMenus() {
+        return this.backpackMenus;
+    }
+
+    @Unique public AbstractBackpackMenu getBackpackMenu(int windowId) {
+        if (windowId < 0 || windowId >= this.backpackMenus.size()) return null;
+        return this.backpackMenus.get(windowId);
+    }
+
+    @Unique public void setBackpackMenu(int windowId, AbstractBackpackMenu menu) {
+        while (this.backpackMenus.size() <= windowId) {
+            this.backpackMenus.add(null);
         }
-    }
-
-    @Override
-    public AbstractBackpackMenu getShelfMenu() {
-        return this.shelfMenu;
-    }
-
-    @Override
-    public void setShelfMenu(AbstractBackpackMenu menu) {
-        this.shelfMenu = menu;
+        this.backpackMenus.set(windowId, menu);
     }
 
     @Override
@@ -58,13 +54,4 @@ public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
         return this.windowCounter;
     }
 
-    @Override
-    public AbstractBackpackMenu getModuleMenu(int index) {
-        return this.moduleMenus.get(index);
-    }
-
-    @Override
-    public void setModuleMenu(AbstractBackpackMenu menu, int index) {
-        this.moduleMenus.set(index, menu);
-    }
 }

@@ -9,8 +9,6 @@ import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
 public class ExxxeeBackpack implements ModInitializer {
 	public static final String MOD_ID = "exxxeebackpack";
 
@@ -22,7 +20,7 @@ public class ExxxeeBackpack implements ModInitializer {
 		ModCreativeModeTabs.register();
 		BackpackDataComponents.register();
 		ServerNetWorking.register();
-		Objects.requireNonNull(WindowMenuType.GENERIC_1x4);
+		WindowMenuType.register();
 
 		LOGGER.info("Hello Fabric world!");
 	}

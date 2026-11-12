@@ -43,17 +43,22 @@ public class MenuWindows {
         MenuWindows.<ShelfMenu, ShelfWindow>register(WindowMenuType.GENERIC_1x4, menu -> new ShelfWindow(0, 0, menu));
     }
 
-    public static ShelfWindow shelf(AbstractBackpackMenu menu) {
-        return new ShelfWindow(0, 0, (ShelfMenu) menu);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static AbstractBackpackWindows<?> window(AbstractBackpackMenu menu) {
+        if (menu.menuType == null) return null;
+        WindowConstructor constructor = getConstructor((WindowMenuType) menu.menuType);
+        if (constructor == null) return null;
+        return constructor.create(menu);
     }
 
 
     public interface WindowConstructor<T extends AbstractBackpackMenu, U extends AbstractBackpackWindows<T>> {
         default void fromPacket(final WindowMenuType<T> type, final Minecraft minecraft, final int windowId) {
             U window = this.create((T)type.create(windowId, minecraft.player));
-            ((IBackpackHost) minecraft.player).setShelfMenu(window.menu);
-            if (minecraft.screen instanceof ShelfWindowHost host) {
-                host.setShelfWindow((ShelfWindow) window);
+            ((IBackpackHost) minecraft.player).setBackpackMenu(windowId, window.menu);
+//            ((IBackpackHost) minecraft.player).setShelfMenu(window.menu);
+            if (minecraft.screen instanceof BackpackWindowHost host) {
+                host.setBackpackWindow(windowId, window);
             }
         }
 

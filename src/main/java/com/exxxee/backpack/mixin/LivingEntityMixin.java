@@ -1,6 +1,6 @@
 package com.exxxee.backpack.mixin;
 
-import com.exxxee.backpack.ShelfSync;
+import com.exxxee.backpack.EquippedWindows;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,9 +17,8 @@ public abstract class LivingEntityMixin {
 
     @Inject(method = "handleEquipmentChanges", at = @At("TAIL"))
     private void backpack$handleEquipmentChanges(Map<EquipmentSlot, ItemStack> changedItems, CallbackInfo ci) {
-        if (!changedItems.containsKey(EquipmentSlot.CHEST)) return;
         if ((Object) this instanceof ServerPlayer player) {
-            ShelfSync.sync(player);
+            EquippedWindows.sync(player);
         }
     }
 }
