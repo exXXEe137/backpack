@@ -15,8 +15,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
@@ -26,8 +27,8 @@ public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
     @Final public InventoryMenu inventoryMenu;
 
     @Unique private int windowCounter;
-    @Unique private List<Container> backpackContainers = new ArrayList<>();
-    @Unique private List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
+    @Unique private final Map<Integer, Container> backpackContainers = new LinkedHashMap<>();
+    @Unique private final Map<Integer, AbstractBackpackMenu> backpackMenus = new LinkedHashMap<>();
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void backpack$onInit(CallbackInfo ci) {
@@ -35,36 +36,36 @@ public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
         this.backpackMenus.clear();
     }
 
-    @Unique public List<Container> getBackpackContainers() {
-        return this.backpackContainers;
+    @Unique public Collection<Container> getBackpackContainers() {
+        return this.backpackContainers.values();
     }
 
     @Unique public Container getBackpackContainer(int windowId) {
-        if (windowId < 0 || windowId >= this.backpackContainers.size()) return null;
         return this.backpackContainers.get(windowId);
     }
 
     @Unique public void setBackpackContainer(int windowId, Container container) {
-        while (this.backpackContainers.size() <= windowId) {
-            this.backpackContainers.add(null);
+        if (container == null) {
+            this.backpackContainers.remove(windowId);
+        } else {
+            this.backpackContainers.put(windowId, container);
         }
-        this.backpackContainers.set(windowId, container);
     }
 
-    @Unique public List<AbstractBackpackMenu> getBackpackMenus() {
-        return this.backpackMenus;
+    @Unique public Collection<AbstractBackpackMenu> getBackpackMenus() {
+        return this.backpackMenus.values();
     }
 
     @Unique public AbstractBackpackMenu getBackpackMenu(int windowId) {
-        if (windowId < 0 || windowId >= this.backpackMenus.size()) return null;
         return this.backpackMenus.get(windowId);
     }
 
     @Unique public void setBackpackMenu(int windowId, AbstractBackpackMenu menu) {
-        while (this.backpackMenus.size() <= windowId) {
-            this.backpackMenus.add(null);
+        if (menu == null) {
+            this.backpackMenus.remove(windowId);
+        } else {
+            this.backpackMenus.put(windowId, menu);
         }
-        this.backpackMenus.set(windowId, menu);
     }
 
     @Override

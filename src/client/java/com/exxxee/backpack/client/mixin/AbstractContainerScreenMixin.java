@@ -18,64 +18,64 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin implements IBackpackHost, BackpackWindowHost {
 
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
-    @Unique private final List<Container> backpackContainers = new ArrayList<>();
-    @Unique private final List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
-    @Unique private final List<AbstractBackpackWindows<?>> backpackWindows = new ArrayList<>();
+    @Unique private final Map<Integer, Container> backpackContainers = new LinkedHashMap<>();
+    @Unique private final Map<Integer, AbstractBackpackMenu> backpackMenus = new LinkedHashMap<>();
+    @Unique private final Map<Integer, AbstractBackpackWindows<?>> backpackWindows = new LinkedHashMap<>();
 
-    @Override public List<Container> getBackpackContainers() {
-        return this.backpackContainers;
+    @Override public Collection<Container> getBackpackContainers() {
+        return this.backpackContainers.values();
     }
 
     @Override public Container getBackpackContainer(int windowId) {
-        if (windowId < 0 || windowId >= this.backpackContainers.size()) return null;
         return this.backpackContainers.get(windowId);
     }
 
     @Override public void setBackpackContainer(int windowId, Container container) {
-        while (this.backpackContainers.size() <= windowId) {
-            this.backpackContainers.add(null);
+        if (container == null) {
+            this.backpackContainers.remove(windowId);
+        } else {
+            this.backpackContainers.put(windowId, container);
         }
-        this.backpackContainers.set(windowId, container);
     }
 
-    @Override public List<AbstractBackpackMenu> getBackpackMenus() {
-        return this.backpackMenus;
+    @Override public Collection<AbstractBackpackMenu> getBackpackMenus() {
+        return this.backpackMenus.values();
     }
 
     @Override public AbstractBackpackMenu getBackpackMenu (int windowId) {
-        if (windowId < 0 || windowId >= this.backpackMenus.size()) return null;
         return this.backpackMenus.get(windowId);
     }
 
     @Override public void setBackpackMenu (int windowId, AbstractBackpackMenu backpackMenu) {
-        while (this.backpackMenus.size() <= windowId) {
-            this.backpackMenus.add(null);
+        if (backpackMenu == null) {
+            this.backpackMenus.remove(windowId);
+        } else {
+            this.backpackMenus.put(windowId, backpackMenu);
         }
-        this.backpackMenus.set(windowId, backpackMenu);
     }
 
     @Override public void setBackpackWindow(int windowId, AbstractBackpackWindows<?> window) {
-        while (this.backpackWindows.size() <= windowId) {
-            this.backpackWindows.add(null);
+        if (window == null) {
+            this.backpackWindows.remove(windowId);
+        } else {
+            this.backpackWindows.put(windowId, window);
         }
-        this.backpackWindows.set(windowId, window);
     }
 
 
     @Inject(method = "init", at = @At("TAIL"))
     public void backpack$init (CallbackInfo ci) {
         for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
-            if (menu == null) continue;
-            if (menu.windowId < this.backpackWindows.size() && this.backpackWindows.get(menu.windowId) != null)
-                continue;
+            if (this.backpackWindows.containsKey(menu.windowId)) continue;
             AbstractBackpackWindows<?> window = MenuWindows.window(menu);
             if (window == null) continue;
             this.setBackpackWindow(menu.windowId, window);
@@ -94,11 +94,9 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "extractContents", at = @At("TAIL"))
     public void backpack$extractRenderState (GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-        for (AbstractBackpackWindows<?> window : backpackWindows) {
-            if (window != null) {
-                window.init(this.leftPos, this.topPos);
-                window.extractRenderState(graphics, mouseX, mouseY, a);
-            }
+        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+            window.init(this.leftPos, this.topPos);
+            window.extractRenderState(graphics, mouseX, mouseY, a);
         }
 
 //        if (this.shelfWindow == null) return;
@@ -108,8 +106,8 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "mouseClicked", at = @At("HEAD"),  cancellable = true)
     public void backpack$mouseClicked (MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        for (AbstractBackpackWindows<?> window : backpackWindows) {
-            if (window != null && window.isMouseOver(event.x(), event.y())) {
+        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+            if (window.isMouseOver(event.x(), event.y())) {
                 cir.setReturnValue(window.mouseClicked(event, doubleClick));
             }
         }
@@ -121,8 +119,8 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void backpack$mouseReleased (MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
-        for (AbstractBackpackWindows<?> window : backpackWindows) {
-            if (window != null && window.isMouseOver(event.x(), event.y())) {
+        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+            if (window.isMouseOver(event.x(), event.y())) {
                 cir.setReturnValue(window.mouseReleased(event));
             }
         }

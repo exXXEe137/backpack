@@ -50,7 +50,7 @@ public final class EquippedWindows {
 
         List<Integer> closing = new ArrayList<>();
         for (AbstractBackpackMenu menu : host.getBackpackMenus()) {
-            if (menu == null || menu.menuType == null) continue;
+            if (menu.menuType == null) continue;
             if (BY_EQUIP.containsValue(menu.menuType) && !worn.contains(menu.menuType)) {
                 closing.add(menu.windowId);
             }
@@ -63,7 +63,7 @@ public final class EquippedWindows {
 
     private static boolean has(IBackpackHost host, WindowMenuType<?> type) {
         for (AbstractBackpackMenu menu : host.getBackpackMenus()) {
-            if (menu != null && menu.menuType == type) return true;
+            if (menu.menuType == type) return true;
         }
         return false;
     }

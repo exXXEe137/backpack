@@ -24,9 +24,7 @@ public final class WindowSync {
 
     public static void sync(ServerPlayer player) {
         for (AbstractBackpackMenu menu : ((IBackpackHost) player).getBackpackMenus()) {
-            if (menu != null) {
-                sync(player, menu.windowId);
-            }
+            sync(player, menu.windowId);
         }
     }
 
