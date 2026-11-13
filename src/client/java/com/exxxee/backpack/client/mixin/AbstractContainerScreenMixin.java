@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.world.Container;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,8 +26,25 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
+    @Unique private final List<Container> backpackContainers = new ArrayList<>();
     @Unique private final List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
     @Unique private final List<AbstractBackpackWindows<?>> backpackWindows = new ArrayList<>();
+
+    @Override public List<Container> getBackpackContainers() {
+        return this.backpackContainers;
+    }
+
+    @Override public Container getBackpackContainer(int windowId) {
+        if (windowId < 0 || windowId >= this.backpackContainers.size()) return null;
+        return this.backpackContainers.get(windowId);
+    }
+
+    @Override public void setBackpackContainer(int windowId, Container container) {
+        while (this.backpackContainers.size() <= windowId) {
+            this.backpackContainers.add(null);
+        }
+        this.backpackContainers.set(windowId, container);
+    }
 
     @Override public List<AbstractBackpackMenu> getBackpackMenus() {
         return this.backpackMenus;

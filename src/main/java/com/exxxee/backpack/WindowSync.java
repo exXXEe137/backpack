@@ -10,6 +10,7 @@ import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.api.WindowIdIssuer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -37,7 +38,11 @@ public final class WindowSync {
 
     public static void sync(ServerPlayer player, WindowMenuType<?> menuType) {
         if (menuType == null) return;
-        sync(player, menuType.create(((WindowIdIssuer) player).nextWindowId(), player));
+        int windowId = ((WindowIdIssuer) player).nextWindowId();
+        IBackpackHost host = (IBackpackHost) player;
+        Container container = menuType.createContainer(player);
+        host.setBackpackContainer(windowId, container);
+        sync(player, menuType.create(windowId, player, container));
     }
 
     public static void sync(ServerPlayer player, AbstractBackpackMenu menu) {
@@ -49,6 +54,7 @@ public final class WindowSync {
     public static void close(ServerPlayer player, int windowId) {
         IBackpackHost host = (IBackpackHost) player;
         if (host.getBackpackMenu(windowId) == null) return;
+        host.setBackpackContainer(windowId, null);
         host.setBackpackMenu(windowId, null);
         ServerPlayNetworking.send(player, new CloseWindowPayload(windowId));
     }

@@ -62,6 +62,7 @@ public class ClientNetWorking {
             Player player = context.player();
             AbstractBackpackMenu menu = ((IBackpackHost) player).getBackpackMenu(payload.windowId());
             if (menu == null || menu.windowId != payload.windowId()) return;
+            ((IBackpackHost) player).setBackpackContainer(menu.windowId, null);
             ((IBackpackHost) player).setBackpackMenu(menu.windowId,  null);
             if (context.client().screen instanceof BackpackWindowHost host) {
                 host.setBackpackWindow(payload.windowId(), null);

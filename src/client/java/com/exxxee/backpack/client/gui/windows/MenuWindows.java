@@ -7,6 +7,7 @@ import com.exxxee.backpack.Inventory.menu.WindowMenuType;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.google.common.collect.Maps;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.Container;
 
 import java.util.Map;
 
@@ -54,9 +55,10 @@ public class MenuWindows {
 
     public interface WindowConstructor<T extends AbstractBackpackMenu, U extends AbstractBackpackWindows<T>> {
         default void fromPacket(final WindowMenuType<T> type, final Minecraft minecraft, final int windowId) {
-            U window = this.create((T)type.create(windowId, minecraft.player));
+            Container container = type.createContainer(minecraft.player);
+            ((IBackpackHost) minecraft.player).setBackpackContainer(windowId, container);
+            U window = this.create((T)type.create(windowId, minecraft.player, container));
             ((IBackpackHost) minecraft.player).setBackpackMenu(windowId, window.menu);
-//            ((IBackpackHost) minecraft.player).setShelfMenu(window.menu);
             if (minecraft.screen instanceof BackpackWindowHost host) {
                 host.setBackpackWindow(windowId, window);
             }

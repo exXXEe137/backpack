@@ -1,28 +1,40 @@
 package com.exxxee.backpack.Inventory.menu;
 
+import com.exxxee.backpack.container.ShelfContainer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 
 public class WindowMenuType<T extends AbstractBackpackMenu> {
 
-    public static final WindowMenuType<ShelfMenu> GENERIC_1x4 = new WindowMenuType<>(ShelfMenu::new);
+    public static final WindowMenuType<ShelfMenu> GENERIC_1x4 = new WindowMenuType<>(ShelfMenu::new, ShelfContainer::new);
 
     private final MenuSupplier<T> constructor;
+    private final ContainerSupplier containerSupplier;
 
     public static void register() {
         WindowBuiltInRegistries.MENU.put("generic_1x4", GENERIC_1x4);
     }
 
-    private WindowMenuType(MenuSupplier<T> constructor) {
+    private WindowMenuType(MenuSupplier<T> constructor, ContainerSupplier containerSupplier) {
         this.constructor = constructor;
+        this.containerSupplier = containerSupplier;
     }
 
-    public T create(int windowId, Player player) {
-        T menu = this.constructor.create(windowId, player);
+    public Container createContainer(Player player) {
+        return this.containerSupplier.create(player);
+    }
+
+    public T create(int windowId, Player player, Container container) {
+        T menu = this.constructor.create(windowId, player, container);
         menu.menuType = this;
         return menu;
     }
 
     public interface MenuSupplier<T extends AbstractBackpackMenu> {
-        T create(int windowId, Player player);
+        T create(int windowId, Player player, Container container);
+    }
+
+    public interface ContainerSupplier {
+        Container create(Player player);
     }
 }

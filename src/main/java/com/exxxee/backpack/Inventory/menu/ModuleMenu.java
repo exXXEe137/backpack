@@ -1,15 +1,10 @@
 package com.exxxee.backpack.Inventory.menu;
 
-import com.exxxee.backpack.Inventory.slot.BackpackSlot;
 import com.exxxee.backpack.container.ModuleContainer;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 public class ModuleMenu extends AbstractBackpackMenu {
-
-//    public ModuleMenu(int windowId, Player player) {
-//    }
 
     public ModuleMenu(int windowId, Player player, ModuleContainer container) {
         super(windowId, player);

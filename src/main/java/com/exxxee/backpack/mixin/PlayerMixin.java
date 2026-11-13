@@ -3,6 +3,7 @@ package com.exxxee.backpack.mixin;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.api.WindowIdIssuer;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -25,11 +26,29 @@ public abstract class PlayerMixin implements IBackpackHost, WindowIdIssuer {
     @Final public InventoryMenu inventoryMenu;
 
     @Unique private int windowCounter;
+    @Unique private List<Container> backpackContainers = new ArrayList<>();
     @Unique private List<AbstractBackpackMenu> backpackMenus = new ArrayList<>();
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void backpack$onInit(CallbackInfo ci) {
+        this.backpackContainers.clear();
         this.backpackMenus.clear();
+    }
+
+    @Unique public List<Container> getBackpackContainers() {
+        return this.backpackContainers;
+    }
+
+    @Unique public Container getBackpackContainer(int windowId) {
+        if (windowId < 0 || windowId >= this.backpackContainers.size()) return null;
+        return this.backpackContainers.get(windowId);
+    }
+
+    @Unique public void setBackpackContainer(int windowId, Container container) {
+        while (this.backpackContainers.size() <= windowId) {
+            this.backpackContainers.add(null);
+        }
+        this.backpackContainers.set(windowId, container);
     }
 
     @Unique public List<AbstractBackpackMenu> getBackpackMenus() {
