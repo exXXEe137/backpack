@@ -1,15 +1,18 @@
 package com.exxxee.backpack.client.network;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.Inventory.menu.ModuleMenu;
 import com.exxxee.backpack.Inventory.menu.WindowBuiltInRegistries;
 import com.exxxee.backpack.Inventory.menu.WindowMenuType;
 import com.exxxee.backpack.Network.payload.CloseWindowPayload;
+import com.exxxee.backpack.Network.payload.ModuleMenuPayload;
 import com.exxxee.backpack.Network.payload.OpenWindowPayload;
 import com.exxxee.backpack.Network.payload.WindowContentPayload;
 import com.exxxee.backpack.Network.payload.WindowSlotPayload;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.client.gui.windows.MenuWindows;
 import com.exxxee.backpack.client.gui.windows.BackpackWindowHost;
+import com.exxxee.backpack.container.ModuleContainer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +26,7 @@ public class ClientNetWorking {
     public static void register() {
         ClientPlayNetworking.registerGlobalReceiver(OpenWindowPayload.TYPE, ClientNetWorking::openWindow);
         ClientPlayNetworking.registerGlobalReceiver(CloseWindowPayload.TYPE, ClientNetWorking::closeWindow);
+        ClientPlayNetworking.registerGlobalReceiver(ModuleMenuPayload.TYPE, ClientNetWorking::syncModuleMenu);
         ClientPlayNetworking.registerGlobalReceiver(WindowContentPayload.TYPE, ClientNetWorking::syncWindow);
         ClientPlayNetworking.registerGlobalReceiver(WindowSlotPayload.TYPE, ClientNetWorking::syncWindowSlot);
     }
@@ -32,6 +36,26 @@ public class ClientNetWorking {
             WindowMenuType<?> menuType = WindowBuiltInRegistries.MENU.get(payload.menuType());
             if (menuType == null) return;
             MenuWindows.create(menuType, context.client(), payload.windowId());
+        });
+    }
+
+    private static void syncModuleMenu(ModuleMenuPayload payload, ClientPlayNetworking.Context context) {
+        context.client().execute(() -> {
+            Player player = context.player();
+            IBackpackHost host = (IBackpackHost) player;
+            AbstractBackpackMenu existing = host.getBackpackMenu(payload.windowId());
+            if (existing instanceof ModuleMenu moduleMenu) {
+                moduleMenu.shelfSlot = payload.shelfSlot();
+                if (!moduleMenu.slots.isEmpty() && moduleMenu.slots.get(0).container instanceof ModuleContainer modules) {
+                    modules.setStack(payload.stack().copy());
+                }
+                return;
+            }
+            ModuleContainer container = new ModuleContainer(payload.stack().copy());
+            ModuleMenu menu = new ModuleMenu(payload.windowId(), player, container);
+            menu.shelfSlot = payload.shelfSlot();
+            host.setBackpackContainer(payload.windowId(), container);
+            host.setBackpackMenu(payload.windowId(), menu);
         });
     }
 

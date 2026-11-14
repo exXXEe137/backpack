@@ -2,6 +2,7 @@ package com.exxxee.backpack.Network;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Network.payload.CloseWindowPayload;
+import com.exxxee.backpack.Network.payload.ModuleMenuPayload;
 import com.exxxee.backpack.Network.payload.OpenWindowPayload;
 import com.exxxee.backpack.Network.payload.ServerboundWindowClickPayload;
 import com.exxxee.backpack.Network.payload.WindowContentPayload;
@@ -20,6 +21,7 @@ public final class ServerNetWorking {
 	public static void register() {
 		PayloadTypeRegistry.clientboundPlay().register(OpenWindowPayload.TYPE, OpenWindowPayload.STREAM_CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(CloseWindowPayload.TYPE, CloseWindowPayload.STREAM_CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(ModuleMenuPayload.TYPE, ModuleMenuPayload.STREAM_CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(WindowContentPayload.TYPE, WindowContentPayload.STREAM_CODEC);
 		PayloadTypeRegistry.clientboundPlay().register(WindowSlotPayload.TYPE, WindowSlotPayload.STREAM_CODEC);
 		PayloadTypeRegistry.serverboundPlay().register(ServerboundWindowClickPayload.TYPE, ServerboundWindowClickPayload.STREAM_CODEC);

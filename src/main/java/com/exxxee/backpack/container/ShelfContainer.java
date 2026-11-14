@@ -1,6 +1,7 @@
 package com.exxxee.backpack.container;
 
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.item.BackpackItems;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +20,7 @@ public class ShelfContainer implements Container {
     private final Player player;
     private final ItemStack shelf;
     private final NonNullList<ItemStack> items;
+    private AbstractBackpackMenu menu;
 
     public ShelfContainer(Player player) {
         this.player = player;
@@ -62,6 +64,13 @@ public class ShelfContainer implements Container {
         if (slot < 0 || slot >= this.items.size()) return;
         this.items.set(slot, stack);
         this.flush();
+        if (this.menu != null) {
+            this.menu.slotsChanged(this);
+        }
+    }
+
+    public void setMenu(AbstractBackpackMenu menu) {
+        this.menu = menu;
     }
 
     public void flush() {

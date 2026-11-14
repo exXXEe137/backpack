@@ -1,6 +1,7 @@
 package com.exxxee.backpack.Inventory.menu;
 
 import com.exxxee.backpack.mixin.SlotAccessor;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -11,6 +12,7 @@ import net.minecraft.CrashReportDetail;
 import net.minecraft.ReportedException;
 import net.minecraft.core.NonNullList;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,10 +21,12 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static net.minecraft.world.inventory.AbstractContainerMenu.*;
 
@@ -36,13 +40,15 @@ public abstract class AbstractBackpackMenu {
     private final List<DataSlot> dataSlots = Lists.<DataSlot>newArrayList();
     private final NonNullList<RemoteSlot> remoteSlots = NonNullList.create();
     private final IntList remoteDataSlots = new IntArrayList();
+    private final List<BackpackListener> backpackListeners = Lists.newArrayList();
+    @Nullable
+    private BackpackSynchronizer synchronizer;
 
     private int quickcraftStatus;
     private final Set<Slot> quickcraftSlots = Sets.<Slot>newHashSet();
     @Nullable
     private int quickcraftType = 0;
-    @Nullable
-    private ContainerSynchronizer synchronizer;
+    private boolean suppressRemoteUpdates;
 
 
     protected AbstractBackpackMenu(int windowId, Player player) {
@@ -363,6 +369,40 @@ public abstract class AbstractBackpackMenu {
         return slot;
     }
 
+    public void addSlotListener(final BackpackListener listener) {
+        if (!this.backpackListeners.contains(listener)) {
+            this.backpackListeners.add(listener);
+            this.broadcastChanges();
+        }
+    }
+
+    public void removeSlotListener(final BackpackListener listener) {
+        this.backpackListeners.remove(listener);
+    }
+
+    public void setSynchronizer(final BackpackSynchronizer synchronizer) {
+        this.synchronizer = synchronizer;
+        this.remoteSlots.replaceAll(ignored -> synchronizer.createSlot());
+        this.sendAllDataToRemote();
+    }
+
+    private void sendAllDataToRemote() {
+        List<ItemStack> items = new ArrayList<>(this.slots.size());
+        for (int i = 0; i < this.slots.size(); i++) {
+            ItemStack current = this.slots.get(i).getItem();
+            items.add(current.copy());
+            this.remoteSlots.get(i).force(current);
+        }
+        int[] data = new int[this.dataSlots.size()];
+        for (int i = 0; i < this.dataSlots.size(); i++) {
+            data[i] = this.dataSlots.get(i).get();
+            this.remoteDataSlots.set(i, data[i]);
+        }
+        if (this.synchronizer != null) {
+            this.synchronizer.sendInitialData(this, items, data);
+        }
+    }
+
     protected DataSlot addDataSlot(final DataSlot dataSlot) {
         this.dataSlots.add(dataSlot);
         this.remoteDataSlots.add(0);
@@ -384,6 +424,14 @@ public abstract class AbstractBackpackMenu {
         player.containerMenu.setCarried(itemStack);
     }
 
+    public void suppressRemoteUpdates() {
+        this.suppressRemoteUpdates = true;
+    }
+
+    public void resumeRemoteUpdates() {
+        this.suppressRemoteUpdates = false;
+    }
+
     public static boolean canItemQuickReplace(@org.jspecify.annotations.Nullable final Slot slot, final ItemStack itemStack, final boolean ignoreSize) {
         boolean slotIsEmpty = slot == null || !slot.hasItem();
         return !slotIsEmpty && ItemStack.isSameItemSameComponents(itemStack, slot.getItem())
@@ -403,6 +451,73 @@ public abstract class AbstractBackpackMenu {
 
     public static int getQuickcraftMask(final int header, final int type) {
         return header & 3 | (type & 3) << 2;
+    }
+
+    public void slotsChanged(final Container container) {
+        this.broadcastChanges();
+    }
+
+    public void broadcastChanges() {
+        for (int i = 0; i < this.slots.size(); i++) {
+            ItemStack current = this.slots.get(i).getItem();
+            Supplier<ItemStack> currentCopy = Suppliers.memoize(current::copy);
+            this.triggerSlotListeners(i, current, currentCopy);
+            this.synchronizeSlotToRemote(i, current, currentCopy);
+        }
+
+//        this.synchronizeCarriedToRemote();
+
+        for (int i = 0; i < this.dataSlots.size(); i++) {
+            DataSlot current = (DataSlot)this.dataSlots.get(i);
+            int currentValue = current.get();
+            if (current.checkAndClearUpdateFlag()) {
+                this.updateDataSlotListeners(i, currentValue);
+            }
+
+            this.synchronizeDataSlotToRemote(i, currentValue);
+        }
+    }
+
+    private void triggerSlotListeners(final int i, final ItemStack current, final Supplier<ItemStack> currentCopy) {
+        ItemStack localExpected = this.lastSlots.get(i);
+        if (!ItemStack.matches(localExpected, current)) {
+            ItemStack newItem = (ItemStack)currentCopy.get();
+            this.lastSlots.set(i, newItem);
+
+            for (BackpackListener listener : this.backpackListeners) {
+                listener.slotChanged(this, i, newItem);
+            }
+        }
+    }
+
+    private void synchronizeSlotToRemote(final int i, final ItemStack current, final Supplier<ItemStack> currentCopy) {
+        if (!this.suppressRemoteUpdates) {
+            RemoteSlot remoteExpected = this.remoteSlots.get(i);
+            if (!remoteExpected.matches(current)) {
+                remoteExpected.force(current);
+                if (this.synchronizer != null) {
+                    this.synchronizer.sendSlotChange(this, i, (ItemStack)currentCopy.get());
+                }
+            }
+        }
+    }
+
+    private void synchronizeDataSlotToRemote(final int i, final int current) {
+        if (!this.suppressRemoteUpdates) {
+            int remoteExpected = this.remoteDataSlots.getInt(i);
+            if (remoteExpected != current) {
+                this.remoteDataSlots.set(i, current);
+                if (this.synchronizer != null) {
+                    this.synchronizer.sendDataChange(this, i, current);
+                }
+            }
+        }
+    }
+
+    private void updateDataSlotListeners(final int id, final int currentValue) {
+        for (BackpackListener listener : this.backpackListeners) {
+            listener.dataChanged(this, id, currentValue);
+        }
     }
 
 }

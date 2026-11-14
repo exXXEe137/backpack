@@ -3,19 +3,15 @@ package com.exxxee.backpack;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.WindowBuiltInRegistries;
 import com.exxxee.backpack.Inventory.menu.WindowMenuType;
+import com.exxxee.backpack.Inventory.menu.ServerBackpackSynchronizer;
 import com.exxxee.backpack.Network.payload.CloseWindowPayload;
 import com.exxxee.backpack.Network.payload.OpenWindowPayload;
-import com.exxxee.backpack.Network.payload.WindowContentPayload;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.api.WindowIdIssuer;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public final class WindowSync {
@@ -61,11 +57,7 @@ public final class WindowSync {
         String menuType = typeName(menu.menuType);
         if (menuType == null) return;
         ServerPlayNetworking.send(player, new OpenWindowPayload(menu.windowId, menuType));
-        List<ItemStack> items = new ArrayList<>();
-        for (Slot slot : menu.slots) {
-            items.add(slot.getItem().copy());
-        }
-        ServerPlayNetworking.send(player, new WindowContentPayload(menu.windowId, items));
+        menu.setSynchronizer(new ServerBackpackSynchronizer(player));
     }
 
     private static String typeName(WindowMenuType<?> menuType) {

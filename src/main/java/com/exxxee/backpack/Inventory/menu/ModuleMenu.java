@@ -6,6 +6,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 public class ModuleMenu extends AbstractBackpackMenu {
 
+    public int shelfSlot = -1;
+    public boolean invoked;
+
     public ModuleMenu(int windowId, Player player, ModuleContainer container) {
         super(windowId, player);
         for (int i = 0; i < container.getContainerSize(); i++) {

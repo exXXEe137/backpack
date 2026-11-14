@@ -16,6 +16,14 @@ public class ModuleContainer implements Container {
         this.itemStack = stack;
     }
 
+    public ItemStack stack() {
+        return this.itemStack;
+    }
+
+    public void setStack(ItemStack stack) {
+        this.itemStack = stack;
+    }
+
     @Override
     public int getContainerSize() {
         return itemStack.get(BackpackDataComponents.MODULE_INVENTORY).toList().size();

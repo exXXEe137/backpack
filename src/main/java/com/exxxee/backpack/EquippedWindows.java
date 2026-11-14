@@ -1,6 +1,7 @@
 package com.exxxee.backpack;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.Inventory.menu.WindowMenuType;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.container.ShelfContainer;
@@ -56,7 +57,11 @@ public final class EquippedWindows {
             }
         }
         for (int windowId : closing) {
-            flush(host.getBackpackMenu(windowId));
+            AbstractBackpackMenu menu = host.getBackpackMenu(windowId);
+            flush(menu);
+            if (menu instanceof ShelfMenu shelfMenu) {
+                shelfMenu.release();
+            }
             WindowSync.close(player, windowId);
         }
     }
