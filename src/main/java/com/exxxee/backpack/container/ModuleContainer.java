@@ -2,18 +2,30 @@ package com.exxxee.backpack.container;
 
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
+import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.exxxee.backpack.item.BackpackItems.MODULE;
 
 public class ModuleContainer implements Container {
 
     private ItemStack itemStack;
+    private final NonNullList<ItemStack> items;
 
     public ModuleContainer(ItemStack stack) {
         this.itemStack = stack;
+        this.items = NonNullList.withSize(27, ItemStack.EMPTY);
+        this.load();
+    }
+
+    @Override
+    public boolean canPlaceItem (int index, ItemStack stack) {
+        return !stack.is(MODULE);
     }
 
     public ItemStack stack() {
@@ -22,11 +34,24 @@ public class ModuleContainer implements Container {
 
     public void setStack(ItemStack stack) {
         this.itemStack = stack;
+        this.load();
+    }
+
+    private void load() {
+        for (int i = 0; i < this.items.size(); i++) {
+            this.items.set(i, ItemStack.EMPTY);
+        }
+        ModuleInventoryData data = this.itemStack.get(BackpackDataComponents.MODULE_INVENTORY);
+        if (data == null) return;
+        NonNullList<ItemStack> loaded = data.toList();
+        for (int i = 0; i < this.items.size() && i < loaded.size(); i++) {
+            this.items.set(i, loaded.get(i));
+        }
     }
 
     @Override
     public int getContainerSize() {
-        return itemStack.get(BackpackDataComponents.MODULE_INVENTORY).toList().size();
+        return this.items.size();
     }
 
     @Override
@@ -39,7 +64,7 @@ public class ModuleContainer implements Container {
 
     @Override
     public ItemStack getItem(int slot) {
-        return itemStack.get(BackpackDataComponents.MODULE_INVENTORY).toList().get(slot);
+        return slot >= 0 && slot < this.items.size() ? this.items.get(slot) : ItemStack.EMPTY;
     }
 
     @Override
@@ -61,9 +86,18 @@ public class ModuleContainer implements Container {
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        List<ItemStack> list = itemStack.get(BackpackDataComponents.MODULE_INVENTORY).toList();
-        list.set(slot, stack);
-        itemStack.set(BackpackDataComponents.MODULE_INVENTORY, ModuleInventoryData.fromList(list));
+        if (slot < 0 || slot >= this.items.size()) return;
+        this.items.set(slot, stack);
+        this.flush();
+    }
+
+    public void flush() {
+        if (this.itemStack.isEmpty()) return;
+        List<ItemStack> snapshot = new ArrayList<>(this.items.size());
+        for (int i = 0; i < this.items.size(); i++) {
+            snapshot.add(this.items.get(i).copy());
+        }
+        this.itemStack.set(BackpackDataComponents.MODULE_INVENTORY, ModuleInventoryData.fromList(snapshot));
     }
 
     @Override

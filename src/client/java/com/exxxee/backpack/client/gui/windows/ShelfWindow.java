@@ -1,10 +1,15 @@
 package com.exxxee.backpack.client.gui.windows;
 
 import com.exxxee.backpack.ExxxeeBackpack;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.Inventory.menu.ModuleMenu;
 import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.Inventory.slot.ShelfSlot;
+import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.item.BackpackItems;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
@@ -18,6 +23,7 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
     private ShelfMenu menu;
     private static final int width = 24;
     private static final int height = 86;
+    private ModuleTab selectedTab;
     private List<ModuleTab> moduleTabs =  new ArrayList<>(4);
 
     protected ShelfWindow(int x, int y, ShelfMenu menu) {
@@ -34,9 +40,13 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
         for (Slot slot : this.menu.slots) {
             int index = slot.index;
             if (slot.getItem().is(BackpackItems.BACKPACK_MODULE) && this.moduleTabs.get(index) == null) {
-                ModuleTab tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index);
+                ModuleTab tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index, this::onTabPress);
                 this.moduleTabs.set(index, tab);
                 this.addRenderableWidget(tab);
+                if (this.isInvoked(index)) {
+                    tab.select();
+                    this.selectedTab = tab;
+                }
             }
         }
     }
@@ -64,17 +74,35 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
             if(moduleTab == null) continue;
             moduleTab.extractContents(graphics, mouseX, mouseY, a);
         }
-
-//        for (int i = 0; i < this.moduleTabs.size(); i++) {
-//            ModuleTab moduleTab = this.moduleTabs.get(i);
-//            if (moduleTab == null) continue;
-//            moduleTab.extractContents(graphics, mouseX, mouseY, a);
-//        }
     }
 
     @Override
     public boolean isMouseOver (final double mouseX, final double mouseY) {
         return mouseX >= this.windowLeft - 8 && mouseX < this.windowRight && mouseY >= this.windowTop && mouseY < this.windowBottom;
+    }
+
+    private boolean isInvoked(int shelfSlot) {
+        for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
+            if (menu instanceof ModuleMenu moduleMenu && moduleMenu.shelfSlot == shelfSlot) {
+                return moduleMenu.invoked;
+            }
+        }
+        return false;
+    }
+
+    private void onTabPress (Button button) {
+        ModuleTab tab = (ModuleTab) button;
+        if (tab.isSelected()) {
+            tab.unselect();
+            this.selectedTab = null;
+        } else {
+            if (this.selectedTab != null) {
+                this.selectedTab.unselect();
+                this.selectedTab = null;
+            }
+            tab.select();
+            this.selectedTab = tab;
+        }
     }
 
     @Override
@@ -88,24 +116,20 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
             int index = slot.index;
             if (slot.getItem().is(BackpackItems.BACKPACK_MODULE)) {
                 if (this.moduleTabs.get(index) != null) continue;
-                ModuleTab tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index);
+                ModuleTab tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index, this::onTabPress);
                 this.moduleTabs.set(index, tab);
                 this.addRenderableWidget(tab);
             } else {
                 ModuleTab tab = this.moduleTabs.get(index);
                 if (tab == null) continue;
+                if (tab == this.selectedTab) {
+                    tab.unselect();
+                    this.selectedTab = null;
+                }
                 this.removeWidget(tab);
                 this.moduleTabs.set(index, null);
             }
         }
-//        for (int i = 0; i < count; i++) {
-//            Slot slot = this.menu.slots.get(i);
-//            if (slot.getItem().is(BackpackItems.BACKPACK_MODULE)) {
-//                if (this.moduleTabs.get(i) == null) {
-//                    this.moduleTabs.set(i, new ModuleTab(this.windowLeft - 7, this.windowTop + 6 + i * 18, i));
-//                }
-//            } else {this.moduleTabs.set(i, null);}
-//        }
     }
 
 }

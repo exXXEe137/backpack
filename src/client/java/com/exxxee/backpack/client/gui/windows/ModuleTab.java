@@ -1,6 +1,10 @@
 package com.exxxee.backpack.client.gui.windows;
 
 import com.exxxee.backpack.ExxxeeBackpack;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.Inventory.menu.ModuleMenu;
+import com.exxxee.backpack.api.IBackpackHost;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
@@ -16,8 +20,8 @@ public class ModuleTab extends ImageButton {
     private final int index;
     private boolean selected = false;
 
-    public ModuleTab(int x, int y,final int index) {
-        super(x, y, width, height, sprites, ModuleTab::press);
+    public ModuleTab(int x, int y,final int index, Button.OnPress onPress) {
+        super(x, y, width, height, sprites, onPress);
         this.index = index;
     }
 
@@ -25,22 +29,42 @@ public class ModuleTab extends ImageButton {
         return this.index;
     }
 
-    private static void press(Button button) {
-        ModuleTab tab = (ModuleTab) button;
-        if (tab.isSelected()) {
-            tab.unselect();
-        } else {
-            tab.select();
-        }
-    }
+//    private static void press(Button button) {
+//        ModuleTab tab = (ModuleTab) button;
+//        if (tab.isSelected()) {
+//            tab.unselect();
+//        } else {
+//            tab.select();
+//        }
+//    }
 
     public void select() {
         this.selected = true;
-        //开widnows（index）
+        ModuleMenu moduleMenu = this.moduleMenu();
+        if (moduleMenu == null) return;
+        moduleMenu.invoked = true;
+        if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
+        AbstractBackpackWindows<?> window = MenuWindows.window(moduleMenu);
+        if (window == null) return;
+        host.setBackpackWindow(moduleMenu.windowId, window);
     }
+
     public void unselect() {
         this.selected = false;
-        //关widnwos（index）
+        ModuleMenu moduleMenu = this.moduleMenu();
+        if (moduleMenu == null) return;
+        moduleMenu.invoked = false;
+        if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
+        host.setBackpackWindow(moduleMenu.windowId, null);
+    }
+
+    private ModuleMenu moduleMenu() {
+        for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
+            if (menu instanceof ModuleMenu moduleMenu && moduleMenu.shelfSlot == this.index) {
+                return moduleMenu;
+            }
+        }
+        return null;
     }
     public boolean isSelected() {return selected;}
 

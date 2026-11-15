@@ -1,6 +1,7 @@
 package com.exxxee.backpack.client.gui.windows;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.Inventory.menu.ModuleMenu;
 import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.Inventory.menu.WindowBuiltInRegistries;
 import com.exxxee.backpack.Inventory.menu.WindowMenuType;
@@ -42,6 +43,7 @@ public class MenuWindows {
 
     static {
         MenuWindows.<ShelfMenu, ShelfWindow>register(WindowMenuType.GENERIC_1x4, menu -> new ShelfWindow(0, 0, menu));
+        MenuWindows.<ModuleMenu, ModuleWindow>register(WindowMenuType.MODULE, menu -> new ModuleWindow(0, 0, menu));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

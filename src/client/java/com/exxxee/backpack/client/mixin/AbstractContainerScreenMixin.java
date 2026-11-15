@@ -2,12 +2,12 @@ package com.exxxee.backpack.client.mixin;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
-import com.exxxee.backpack.Inventory.menu.ShelfMenu;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.client.gui.windows.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.Container;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Mixin(AbstractContainerScreen.class)
@@ -75,6 +76,7 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
     @Inject(method = "init", at = @At("TAIL"))
     public void backpack$init (CallbackInfo ci) {
         for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
+            if (menu instanceof ModuleMenu) continue;
             if (this.backpackWindows.containsKey(menu.windowId)) continue;
             AbstractBackpackWindows<?> window = MenuWindows.window(menu);
             if (window == null) continue;
@@ -91,14 +93,14 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "containerTick", at = @At("TAIL"))
     public void backpack$containerTick (CallbackInfo ci) {
-        for (AbstractBackpackWindows<?> window : this.backpackWindows.values()) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(this.backpackWindows.values())) {
             window.tick();
         }
     }
 
     @Inject(method = "extractContents", at = @At("TAIL"))
     public void backpack$extractRenderState (GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
-        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
             window.init(this.leftPos, this.topPos);
             window.extractRenderState(graphics, mouseX, mouseY, a);
         }
@@ -106,7 +108,7 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "mouseClicked", at = @At("HEAD"),  cancellable = true)
     public void backpack$mouseClicked (MouseButtonEvent event, boolean doubleClick, CallbackInfoReturnable<Boolean> cir) {
-        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
             if (window.isMouseOver(event.x(), event.y())) {
                 cir.setReturnValue(window.mouseClicked(event, doubleClick));
             }
@@ -115,9 +117,45 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
     public void backpack$mouseReleased (MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir) {
-        for (AbstractBackpackWindows<?> window : backpackWindows.values()) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
+            if (window.hasPendingRelease()) {
+                cir.setReturnValue(window.mouseReleased(event));
+                return;
+            }
+        }
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
             if (window.isMouseOver(event.x(), event.y())) {
                 cir.setReturnValue(window.mouseReleased(event));
+            }
+        }
+    }
+
+    @Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
+    public void backpack$mouseDragged (MouseButtonEvent event, double dx, double dy, CallbackInfoReturnable<Boolean> cir) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
+            if (window.isMouseOver(event.x(), event.y()) && window.mouseDragged(event, dx, dy)) {
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+    }
+
+    @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
+    public void backpack$mouseScrolled (double x, double y, double scrollX, double scrollY, CallbackInfoReturnable<Boolean> cir) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
+            if (window.isMouseOver(x, y) && window.mouseScrolled(x, y, scrollX, scrollY)) {
+                cir.setReturnValue(true);
+                return;
+            }
+        }
+    }
+
+    @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+    public void backpack$keyPressed (KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+        for (AbstractBackpackWindows<?> window : List.copyOf(backpackWindows.values())) {
+            if (window.keyPressed(event)) {
+                cir.setReturnValue(true);
+                return;
             }
         }
     }

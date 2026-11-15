@@ -7,6 +7,14 @@ import net.minecraft.world.entity.player.Player;
 public class WindowMenuType<T extends AbstractBackpackMenu> {
 
     public static final WindowMenuType<ShelfMenu> GENERIC_1x4 = new WindowMenuType<>(ShelfMenu::new, ShelfContainer::new);
+    public static final WindowMenuType<ModuleMenu> MODULE = new WindowMenuType<>(
+            (windowId, player, container) -> {
+                throw new IllegalStateException("module menu is created with its item");
+            },
+            player -> {
+                throw new IllegalStateException("module container comes with the item");
+            }
+    );
 
     private final MenuSupplier<T> constructor;
     private final ContainerSupplier containerSupplier;

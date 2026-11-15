@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -336,6 +337,10 @@ public abstract class AbstractBackpackWindows<T extends AbstractBackpackMenu> ex
         BackpackMultiPlayerGameMode.handleContainerInput(this.menu.windowId, slotId, buttonNum, containerInput, this.minecraft.player);
     }
 
+    public boolean hasPendingRelease() {
+        return this.isQuickCrafting || this.skipNextRelease || this.clickedSlot != null;
+    }
+
     private void checkHotbarMouseClicked(final MouseButtonEvent event) {
         if (this.hoveredSlot != null && this.menu.getCarried().isEmpty()) {
             if (this.minecraft.options.keySwapOffhand.matchesMouse(event)) {
@@ -349,6 +354,43 @@ public abstract class AbstractBackpackWindows<T extends AbstractBackpackMenu> ex
                 }
             }
         }
+    }
+
+    @Override
+    public boolean keyPressed(final KeyEvent event) {
+        if (super.keyPressed(event)) {
+            return true;
+        } else if (this.checkHotbarKeyPressed(event)) {
+            return true;
+        } else if (this.hoveredSlot != null && this.hoveredSlot.hasItem()) {
+            if (this.minecraft.options.keyPickItem.matches(event)) {
+                this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, 0, ContainerInput.CLONE);
+                return true;
+            } else if (this.minecraft.options.keyDrop.matches(event)) {
+                this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, event.hasControlDown() ? 1 : 0, ContainerInput.THROW);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean checkHotbarKeyPressed(final KeyEvent event) {
+        if (this.menu.getCarried().isEmpty() && this.hoveredSlot != null) {
+            if (this.minecraft.options.keySwapOffhand.matches(event)) {
+                this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, 40, ContainerInput.SWAP);
+                return true;
+            }
+
+            for (int i = 0; i < 9; i++) {
+                if (this.minecraft.options.keyHotbarSlots[i].matches(event)) {
+                    this.slotClicked(this.hoveredSlot, this.hoveredSlot.index, i, ContainerInput.SWAP);
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private boolean shouldAddSlotToQuickCraft(final Slot slot, final ItemStack carried) {
