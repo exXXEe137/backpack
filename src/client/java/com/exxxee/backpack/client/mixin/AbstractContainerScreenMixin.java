@@ -4,12 +4,15 @@ import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
 import com.exxxee.backpack.api.IBackpackHost;
 import com.exxxee.backpack.client.gui.windows.*;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -28,6 +31,7 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
 
     @Shadow protected int leftPos;
     @Shadow protected int topPos;
+    @Shadow protected AbstractContainerMenu menu;
     @Unique private final Map<Integer, Container> backpackContainers = new LinkedHashMap<>();
     @Unique private final Map<Integer, AbstractBackpackMenu> backpackMenus = new LinkedHashMap<>();
     @Unique private final Map<Integer, AbstractBackpackWindows<?>> backpackWindows = new LinkedHashMap<>();
@@ -95,6 +99,21 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
     public void backpack$containerTick (CallbackInfo ci) {
         for (AbstractBackpackWindows<?> window : List.copyOf(this.backpackWindows.values())) {
             window.tick();
+        }
+    }
+
+    @Inject(method = "extractCarriedItem", at = @At("HEAD"), cancellable = true)
+    private void backpack$extractCarriedItem(GuiGraphicsExtractor graphics, int mouseX, int mouseY, CallbackInfo ci) {
+        for (AbstractBackpackWindows<?> window : this.backpackWindows.values()) {
+            Integer remainder = window.quickCraftPreview();
+            if (remainder == null) continue;
+            ItemStack carried = this.menu.getCarried().copyWithCount(remainder);
+            String itemCount = carried.isEmpty() ? ChatFormatting.YELLOW + "0" : null;
+            graphics.nextStratum();
+            graphics.item(carried, mouseX - 8, mouseY - 8);
+            graphics.itemDecorations(Minecraft.getInstance().font, carried, mouseX - 8, mouseY - 8, itemCount);
+            ci.cancel();
+            return;
         }
     }
 

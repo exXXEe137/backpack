@@ -34,6 +34,7 @@ public final class ServerNetWorking {
 			AbstractBackpackMenu menu = ((IBackpackHost) context.player()).getBackpackMenu(payload.windowId());
 			if (menu == null || menu.windowId != payload.windowId()) return;
 			menu.clicked(payload.slotindex(), payload.buttonNum(), payload.containerInput(), context.player());
+			context.player().containerMenu.broadcastChanges();
 		});
 	}
 

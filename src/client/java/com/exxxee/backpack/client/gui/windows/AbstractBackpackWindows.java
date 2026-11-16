@@ -252,6 +252,12 @@ public abstract class AbstractBackpackWindows<T extends AbstractBackpackMenu> ex
         return null;
     }
 
+    @Nullable
+    public Integer quickCraftPreview() {
+        if (!this.isQuickCrafting || this.quickCraftSlots.size() <= 1) return null;
+        return this.quickCraftingRemainder;
+    }
+
     private void recalculateQuickCraftRemaining() {
         ItemStack carried = this.menu.getCarried();
         if (!carried.isEmpty() && this.isQuickCrafting) {
