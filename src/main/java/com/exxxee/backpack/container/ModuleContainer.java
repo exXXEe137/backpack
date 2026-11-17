@@ -11,8 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.exxxee.backpack.item.BackpackItems.MODULE;
-import static com.exxxee.backpack.item.BackpackItems.SHELF;
+import static com.exxxee.backpack.item.BackpackItems.MODULE_BLACKLIST;
 
 public class ModuleContainer implements Container {
 
@@ -28,7 +27,7 @@ public class ModuleContainer implements Container {
 
     @Override
     public boolean canPlaceItem (int index, ItemStack stack) {
-        return !stack.is(MODULE) && !stack.is(SHELF);
+        return !stack.is(MODULE_BLACKLIST);
     }
 
     public ItemStack stack() {

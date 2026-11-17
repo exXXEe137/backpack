@@ -5,16 +5,25 @@
 
 ## 改了什么
 
-### 0. 模块格子只收「既不是模块、也不是背架」的物品
+### 0. 模块格子按专用黑名单拒收
 
-`ModuleContainer.canPlaceItem` 从 `!stack.is(MODULE)` 改成 `!stack.is(MODULE) && !stack.is(SHELF)`，两个都是物品标签，不是写死的物品。
+`ModuleContainer.canPlaceItem` 改成 `!stack.is(MODULE_BLACKLIST)`，黑名单单独一个标签，只给 `ModuleContainer` 用：
 
-- `#exxxeebackpack:modules` —— 原有标签，`data/exxxeebackpack/tags/item/modules.json`
-- `#exxxeebackpack:shelves` —— 本次新增，`data/exxxeebackpack/tags/item/shelves.json`
+`data/exxxeebackpack/tags/item/module_blacklist.json`
 
-原规则允许把背架放进模块，等于背包套背包：那件背架带着自己的 `SHELF_MODULES`，搬出来时看起来就像「凭空多了一件跟身上一样的背架」。现在模块格子放不进去，创造模式的绝对写入也会因为 `slot.mayPlace` 校验失败而回退。
+```json
+{
+  "replace": false,
+  "values": [
+    "exxxeebackpack:backpacks/backpack_module",
+    "exxxeebackpack:backpacks/backpack_shelf"
+  ]
+}
+```
 
-用标签而不是单品：以后加第三种「不该进模块」的物品，改 JSON 就行，不用动 Java。
+现在模块格子拒绝模块和背架两样。以后要再拒一类，改这个 JSON 就行。
+
+原来的 `#exxxeebackpack:modules`（`modules.json`）保持原职责——「什么算模块」，由 `ShelfContainer.canPlaceItem` 和 `ShelfMenu.slotChanged` 用；背架的识别（`ShelfContainer`、`BackpackSlot.isActive`）仍按 `BackpackItems.BACKPACK_SHELF` 这个具体物品。
 
 已经在模块里的旧背架仍然拿得出来（`mayPickup` 不受影响）。
 
