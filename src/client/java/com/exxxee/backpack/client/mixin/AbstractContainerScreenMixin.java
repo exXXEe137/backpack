@@ -81,10 +81,10 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
     public void backpack$init (CallbackInfo ci) {
         for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
             if (menu instanceof ModuleMenu) continue;
-            if (this.backpackWindows.containsKey(menu.windowId)) continue;
+            if (this.backpackWindows.containsKey(menu.containerId)) continue;
             AbstractBackpackWindows<?> window = MenuWindows.window(menu);
             if (window == null) continue;
-            this.setBackpackWindow(menu.windowId, window);
+            this.setBackpackWindow(menu.containerId, window);
         }
 
 //        if (this.shelfWindow != null) return;

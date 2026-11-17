@@ -340,7 +340,7 @@ public abstract class AbstractBackpackWindows<T extends AbstractBackpackMenu> ex
         }
 
         this.onMouseClickAction(slot, containerInput);
-        BackpackMultiPlayerGameMode.handleContainerInput(this.menu.windowId, slotId, buttonNum, containerInput, this.minecraft.player);
+        BackpackMultiPlayerGameMode.handleContainerInput(this.menu.containerId, slotId, buttonNum, containerInput, this.minecraft.player);
     }
 
     public boolean hasPendingRelease() {

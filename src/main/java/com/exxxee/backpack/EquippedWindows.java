@@ -53,7 +53,7 @@ public final class EquippedWindows {
         for (AbstractBackpackMenu menu : host.getBackpackMenus()) {
             if (menu.menuType == null) continue;
             if (BY_EQUIP.containsValue(menu.menuType) && !worn.contains(menu.menuType)) {
-                closing.add(menu.windowId);
+                closing.add(menu.containerId);
             }
         }
         for (int windowId : closing) {

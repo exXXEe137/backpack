@@ -3,7 +3,9 @@ package com.exxxee.backpack.client.gui.windows;
 import com.exxxee.backpack.ExxxeeBackpack;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
+import com.exxxee.backpack.Network.payload.ServerboundModuleInvokePayload;
 import com.exxxee.backpack.api.IBackpackHost;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -19,6 +21,7 @@ public class ModuleTab extends ImageButton {
     private static final int height = 19;
     private final int index;
     private boolean selected = false;
+    private AbstractBackpackWindows<?> window;
 
     public ModuleTab(int x, int y,final int index, Button.OnPress onPress) {
         super(x, y, width, height, sprites, onPress);
@@ -42,20 +45,28 @@ public class ModuleTab extends ImageButton {
         this.selected = true;
         ModuleMenu moduleMenu = this.moduleMenu();
         if (moduleMenu == null) return;
-        moduleMenu.invoked = true;
+        if (!moduleMenu.invoked) {
+            moduleMenu.invoked = true;
+            ClientPlayNetworking.send(new ServerboundModuleInvokePayload(moduleMenu.containerId, true));
+        }
         if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
-        AbstractBackpackWindows<?> window = MenuWindows.window(moduleMenu);
-        if (window == null) return;
-        host.setBackpackWindow(moduleMenu.windowId, window);
+        if (this.window != null) return;
+        AbstractBackpackWindows<?> created = MenuWindows.window(moduleMenu);
+        if (created == null) return;
+        this.window = created;
+        host.setBackpackWindow(moduleMenu.containerId, created);
     }
 
     public void unselect() {
         this.selected = false;
         ModuleMenu moduleMenu = this.moduleMenu();
         if (moduleMenu == null) return;
-        moduleMenu.invoked = false;
+        if (moduleMenu.invoked) {
+            moduleMenu.invoked = false;
+            ClientPlayNetworking.send(new ServerboundModuleInvokePayload(moduleMenu.containerId, false));
+        }
         if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
-        host.setBackpackWindow(moduleMenu.windowId, null);
+        host.setBackpackWindow(moduleMenu.containerId, null);
     }
 
     private ModuleMenu moduleMenu() {

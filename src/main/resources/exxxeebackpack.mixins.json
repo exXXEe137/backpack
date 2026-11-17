@@ -5,11 +5,11 @@
     "mixins": [
         "InventoryMixin",
         "AbstractContainerMenuAccessor",
+        "AbstractContainerMenuMixin",
         "PlayerMixin",
         "ServerPlayerMixin",
         "PlayerListMixin",
-        "LivingEntityMixin",
-        "SlotAccessor"
+        "LivingEntityMixin"
     ],
     "injectors": {
         "defaultRequire": 1

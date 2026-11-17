@@ -13,9 +13,11 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerListener;
 import net.minecraft.world.item.ItemStack;
 
-public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener {
+public class ShelfMenu extends AbstractBackpackMenu implements ContainerListener {
 
     public ShelfMenu(int windowId, Player player, Container container) {
         super(windowId, player);
@@ -38,7 +40,7 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
     }
 
     @Override
-    public void slotChanged(AbstractBackpackMenu menu, int slotIndex, ItemStack itemStack) {
+    public void slotChanged(AbstractContainerMenu menu, int slotIndex, ItemStack itemStack) {
         if (!(this.player instanceof ServerPlayer serverPlayer)) return;
         if (slotIndex < 0 || slotIndex >= this.slots.size()) return;
         ItemStack live = this.slots.get(slotIndex).getItem();
@@ -55,7 +57,7 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
     }
 
     @Override
-    public void dataChanged(AbstractBackpackMenu menu, int id, int value) {
+    public void dataChanged(AbstractContainerMenu menu, int id, int value) {
     }
 
     private void createModule(ServerPlayer player, int shelfSlot, ItemStack stack) {
@@ -67,6 +69,7 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
         host.setBackpackContainer(windowId, container);
         host.setBackpackMenu(windowId, menu);
         this.sendModule(player, menu);
+        menu.setSynchronizer(new ServerBackpackSynchronizer(player));
     }
 
     private void retarget(ModuleMenu menu, ItemStack stack) {
@@ -81,7 +84,7 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
     private void removeModule(int shelfSlot) {
         ModuleMenu menu = this.find(shelfSlot);
         if (menu == null || !(this.player instanceof ServerPlayer serverPlayer)) return;
-        WindowSync.close(serverPlayer, menu.windowId);
+        WindowSync.close(serverPlayer, menu.containerId);
     }
 
     private void sendModule(ServerPlayer player, ModuleMenu menu) {
@@ -89,7 +92,7 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
         if (!menu.slots.isEmpty() && menu.slots.get(0).container instanceof ModuleContainer modules) {
             stack = modules.stack();
         }
-        ServerPlayNetworking.send(player, new ModuleMenuPayload(menu.windowId, menu.shelfSlot, stack));
+        ServerPlayNetworking.send(player, new ModuleMenuPayload(menu.containerId, menu.shelfSlot, stack));
     }
 
     private ModuleMenu find(int shelfSlot) {
@@ -103,7 +106,9 @@ public class ShelfMenu extends AbstractBackpackMenu implements BackpackListener 
 
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
-        return ItemStack.EMPTY;
+        if (slotIndex < 0 || slotIndex >= this.slots.size()) return ItemStack.EMPTY;
+        if (!this.slots.get(slotIndex).getItem().is(BackpackItems.MODULE)) return ItemStack.EMPTY;
+        return this.quickMoveToHost(player, slotIndex);
     }
 
 }

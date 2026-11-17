@@ -5,13 +5,15 @@ import com.exxxee.backpack.Network.payload.WindowSlotPayload;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.HashedStack;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerSynchronizer;
 import net.minecraft.world.inventory.RemoteSlot;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ServerBackpackSynchronizer implements BackpackSynchronizer {
+public final class ServerBackpackSynchronizer implements ContainerSynchronizer {
 
     private final ServerPlayer player;
 
@@ -20,21 +22,25 @@ public final class ServerBackpackSynchronizer implements BackpackSynchronizer {
     }
 
     @Override
-    public void sendInitialData(AbstractBackpackMenu menu, List<ItemStack> slotItems, int[] dataSlots) {
+    public void sendInitialData(AbstractContainerMenu menu, List<ItemStack> slotItems, ItemStack carried, int[] dataSlots) {
         List<ItemStack> items = new ArrayList<>(slotItems.size());
         for (ItemStack stack : slotItems) {
             items.add(stack.copy());
         }
-        ServerPlayNetworking.send(this.player, new WindowContentPayload(menu.windowId, items));
+        ServerPlayNetworking.send(this.player, new WindowContentPayload(menu.containerId, items));
     }
 
     @Override
-    public void sendSlotChange(AbstractBackpackMenu menu, int slotIndex, ItemStack itemStack) {
-        ServerPlayNetworking.send(this.player, new WindowSlotPayload(menu.windowId, slotIndex, itemStack));
+    public void sendSlotChange(AbstractContainerMenu menu, int slotIndex, ItemStack itemStack) {
+        ServerPlayNetworking.send(this.player, new WindowSlotPayload(menu.containerId, slotIndex, itemStack));
     }
 
     @Override
-    public void sendDataChange(AbstractBackpackMenu menu, int id, int value) {
+    public void sendCarriedChange(AbstractContainerMenu menu, ItemStack itemStack) {
+    }
+
+    @Override
+    public void sendDataChange(AbstractContainerMenu menu, int id, int value) {
     }
 
     @Override

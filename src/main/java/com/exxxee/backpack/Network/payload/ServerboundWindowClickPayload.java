@@ -10,15 +10,25 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.item.ItemStack;
 
-public record ServerboundWindowClickPayload(int windowId, int slotindex, int buttonNum, ContainerInput containerInput, Int2ObjectMap<HashedStack> changedSlots) implements CustomPacketPayload {
+public record ServerboundWindowClickPayload(int windowId, int slotindex, int buttonNum, ContainerInput containerInput, Int2ObjectMap<HashedStack> changedSlots, Int2ObjectMap<ItemStack> creativeSlots, Int2ObjectMap<ItemStack> creativeInventorySlots, Int2ObjectMap<ItemStack> creativeMenuSlots) implements CustomPacketPayload {
 
     public static final StreamCodec<FriendlyByteBuf, ServerboundWindowClickPayload> STREAM_CODEC = CustomPacketPayload.codec(ServerboundWindowClickPayload::write, ServerboundWindowClickPayload::new);
 
     public static final CustomPacketPayload.Type<ServerboundWindowClickPayload> TYPE = new Type<ServerboundWindowClickPayload>(Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID, "window_click"));
 
     private ServerboundWindowClickPayload(final FriendlyByteBuf input) {
-        this(input.readVarInt(), input.readVarInt(), input.readVarInt(), input.readEnum(ContainerInput.class), readChangedSlots((RegistryFriendlyByteBuf) input));
+        this(
+                input.readVarInt(),
+                input.readVarInt(),
+                input.readVarInt(),
+                input.readEnum(ContainerInput.class),
+                readChangedSlots((RegistryFriendlyByteBuf) input),
+                readItemStacks((RegistryFriendlyByteBuf) input),
+                readItemStacks((RegistryFriendlyByteBuf) input),
+                readItemStacks((RegistryFriendlyByteBuf) input)
+        );
     }
 
     private static Int2ObjectMap<HashedStack> readChangedSlots(final RegistryFriendlyByteBuf input) {
@@ -30,6 +40,15 @@ public record ServerboundWindowClickPayload(int windowId, int slotindex, int but
         return changedSlots;
     }
 
+    private static Int2ObjectMap<ItemStack> readItemStacks(final RegistryFriendlyByteBuf input) {
+        int size = input.readVarInt();
+        Int2ObjectMap<ItemStack> stacks = new Int2ObjectOpenHashMap<>();
+        for (int i = 0; i < size; i++) {
+            stacks.put(input.readVarInt(), ItemStack.OPTIONAL_STREAM_CODEC.decode(input));
+        }
+        return stacks;
+    }
+
     private void write(final FriendlyByteBuf output) {
         output.writeVarInt(this.windowId);
         output.writeVarInt(this.slotindex);
@@ -39,6 +58,17 @@ public record ServerboundWindowClickPayload(int windowId, int slotindex, int but
         for (Int2ObjectMap.Entry<HashedStack> entry : this.changedSlots.int2ObjectEntrySet()) {
             output.writeVarInt(entry.getIntKey());
             HashedStack.STREAM_CODEC.encode((RegistryFriendlyByteBuf) output, entry.getValue());
+        }
+        writeItemStacks(output, this.creativeSlots);
+        writeItemStacks(output, this.creativeInventorySlots);
+        writeItemStacks(output, this.creativeMenuSlots);
+    }
+
+    private static void writeItemStacks(final FriendlyByteBuf output, final Int2ObjectMap<ItemStack> stacks) {
+        output.writeVarInt(stacks.size());
+        for (Int2ObjectMap.Entry<ItemStack> entry : stacks.int2ObjectEntrySet()) {
+            output.writeVarInt(entry.getIntKey());
+            ItemStack.OPTIONAL_STREAM_CODEC.encode((RegistryFriendlyByteBuf) output, entry.getValue());
         }
     }
 

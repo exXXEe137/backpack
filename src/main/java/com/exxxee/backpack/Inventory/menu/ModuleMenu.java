@@ -12,6 +12,7 @@ public class ModuleMenu extends AbstractBackpackMenu {
     public ModuleMenu(int windowId, Player player, ModuleContainer container) {
         super(windowId, player);
         this.menuType = WindowMenuType.MODULE;
+        container.setMenu(this);
         for (int i = 0; i < container.getContainerSize(); i++) {
             int col = i % 3;
             int row = i / 3;
@@ -21,7 +22,7 @@ public class ModuleMenu extends AbstractBackpackMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
-        return ItemStack.EMPTY;
+        return this.quickMoveToHost(player, slotIndex);
     }
 
 }

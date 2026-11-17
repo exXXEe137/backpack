@@ -2,6 +2,7 @@ package com.exxxee.backpack.container;
 
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -16,6 +17,7 @@ public class ModuleContainer implements Container {
 
     private ItemStack itemStack;
     private final NonNullList<ItemStack> items;
+    private AbstractBackpackMenu menu;
 
     public ModuleContainer(ItemStack stack) {
         this.itemStack = stack;
@@ -35,6 +37,11 @@ public class ModuleContainer implements Container {
     public void setStack(ItemStack stack) {
         this.itemStack = stack;
         this.load();
+        this.notifyMenu();
+    }
+
+    public void setMenu(AbstractBackpackMenu menu) {
+        this.menu = menu;
     }
 
     private void load() {
@@ -89,6 +96,13 @@ public class ModuleContainer implements Container {
         if (slot < 0 || slot >= this.items.size()) return;
         this.items.set(slot, stack);
         this.flush();
+        this.notifyMenu();
+    }
+
+    private void notifyMenu() {
+        if (this.menu != null) {
+            this.menu.slotsChanged(this);
+        }
     }
 
     public void flush() {

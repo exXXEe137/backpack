@@ -20,7 +20,7 @@ public final class WindowSync {
 
     public static void sync(ServerPlayer player) {
         for (AbstractBackpackMenu menu : ((IBackpackHost) player).getBackpackMenus()) {
-            sync(player, menu.windowId);
+            sync(player, menu.containerId);
         }
     }
 
@@ -41,7 +41,7 @@ public final class WindowSync {
 
     public static void sync(ServerPlayer player, AbstractBackpackMenu menu) {
         if (menu == null) return;
-        ((IBackpackHost) player).setBackpackMenu(menu.windowId, menu);
+        ((IBackpackHost) player).setBackpackMenu(menu.containerId, menu);
         send(player, menu);
     }
 
@@ -56,7 +56,7 @@ public final class WindowSync {
     private static void send(ServerPlayer player, AbstractBackpackMenu menu) {
         String menuType = typeName(menu.menuType);
         if (menuType == null) return;
-        ServerPlayNetworking.send(player, new OpenWindowPayload(menu.windowId, menuType));
+        ServerPlayNetworking.send(player, new OpenWindowPayload(menu.containerId, menuType));
         menu.setSynchronizer(new ServerBackpackSynchronizer(player));
     }
 

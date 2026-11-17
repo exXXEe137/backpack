@@ -115,10 +115,18 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
         for  (Slot slot : menu.slots) {
             int index = slot.index;
             if (slot.getItem().is(BackpackItems.BACKPACK_MODULE)) {
-                if (this.moduleTabs.get(index) != null) continue;
-                ModuleTab tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index, this::onTabPress);
-                this.moduleTabs.set(index, tab);
-                this.addRenderableWidget(tab);
+                ModuleTab tab = this.moduleTabs.get(index);
+                if (tab == null) {
+                    tab = new ModuleTab(this.windowLeft - 8, this.windowTop + 6 + index * 18, index, this::onTabPress);
+                    this.moduleTabs.set(index, tab);
+                    this.addRenderableWidget(tab);
+                    if (this.isInvoked(index)) {
+                        tab.select();
+                        this.selectedTab = tab;
+                    }
+                } else if (tab.isSelected()) {
+                    tab.select();
+                }
             } else {
                 ModuleTab tab = this.moduleTabs.get(index);
                 if (tab == null) continue;
