@@ -3,6 +3,7 @@ package com.exxxee.backpack.container;
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Datacomponent.ModuleInventoryData;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
+import com.exxxee.backpack.item.BackpackItems;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
@@ -27,7 +28,7 @@ public class ModuleContainer implements Container {
 
     @Override
     public boolean canPlaceItem (int index, ItemStack stack) {
-        return !stack.is(MODULE);
+        return !stack.is(MODULE) && !stack.is(BackpackItems.BACKPACK_SHELF);
     }
 
     public ItemStack stack() {

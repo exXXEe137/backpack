@@ -72,13 +72,8 @@ public class BackpackMultiPlayerGameMode {
                     if (!ItemStack.matches(hostBeforeClick.get(i), after)) {
                         if (slot.container == player.getInventory()) {
                             creativeInventorySlots.put(slot.getContainerSlot(), after.copy());
-                            LOGGER.info("[backpack] creative inv write: menuSlot={} containerSlot={} slotClass={} before={} after={}",
-                                    slot.index, slot.getContainerSlot(), slot.getClass().getSimpleName(),
-                                    hostBeforeClick.get(i), after);
                         } else {
                             creativeMenuSlots.put(slot.index, after.copy());
-                            LOGGER.info("[backpack] creative menu write: menuSlot={} slotClass={} before={} after={}",
-                                    slot.index, slot.getClass().getSimpleName(), hostBeforeClick.get(i), after);
                         }
                     }
                 }

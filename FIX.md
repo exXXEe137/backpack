@@ -5,6 +5,14 @@
 
 ## 改了什么
 
+### 0. 模块格子只收「既不是模块、也不是背架」的物品
+
+`ModuleContainer.canPlaceItem` 从 `!stack.is(MODULE)` 改成 `!stack.is(MODULE) && !stack.is(BackpackItems.BACKPACK_SHELF)`。
+
+原规则允许把背架放进模块，等于背包套背包：那件背架带着自己的 `SHELF_MODULES`，搬出来时看起来就像「凭空多了一件跟身上一样的背架」。现在模块格子放不进去，创造模式的绝对写入也会因为 `slot.mayPlace` 校验失败而回退。
+
+已经在模块里的旧背架仍然拿得出来（`mayPickup` 不受影响）。
+
 ### 1. `ShelfContainer.flush()` 只写数据
 
 原来每写一格就 `createInventoryUpdatePacket(CHEST)` + `player.containerMenu.broadcastChanges()`。一次点击会触发 N 次「把点了一半的玩家菜单推回客户端」。创造模式下这些中间态会被创造界面当成本地改动回写成 `SetCreativeModeSlot`，就是 Shift 之后背包显示迟一拍的原因。
