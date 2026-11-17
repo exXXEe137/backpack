@@ -27,6 +27,19 @@
 
 已经在模块里的旧背架仍然拿得出来（`mayPickup` 不受影响）。
 
+### 0.5 创造模式的快速移动改成服务端菜单交互
+
+之前创造模式 Shift 是：客户端先在本地 `clicked()` 搬一遍，再把「背包格 / 库存格 / 宿主格」的最终内容整份发给服务端，服务端按下标 `setByPlayer` / `setItem` 直接写。这等于绕过菜单交互直接改数据，落点算错就会写进盔甲、写进不相干的槽。
+
+现在：
+
+- 客户端遇到创造模式 + `QUICK_MOVE` **不做本地预测**，只发「窗口号 + 格子 + Shift」，三张最终状态表都是空的。
+- 服务端收到后照常 `menu.clicked(...)`（`suppressRemoteUpdates` 包住），搬运用的是 `QuickMove` → 宿主菜单的 `moveItemStackTo`，全部走 `Slot.mayPlace` / `Slot.setByPlayer` 这一层，然后统一广播背包菜单和玩家菜单。
+- `QuickMove.isPlayerInventory` 只认主背包和快捷栏（`getContainerSlot() < 36`），盔甲和副手不再作为 Shift 落点。
+- `applyInventory` 拒绝 36 及以上的下标，作为创造模式整格写入的兜底。
+
+创造模式下「光标上拿着东西」的点击（`PICKUP` / `SWAP`）仍然要用整格写入——光标本来就只存在于客户端，服务端没有可重放的输入。
+
 ### 1. `ShelfContainer.flush()` 只写数据
 
 原来每写一格就 `createInventoryUpdatePacket(CHEST)` + `player.containerMenu.broadcastChanges()`。一次点击会触发 N 次「把点了一半的玩家菜单推回客户端」。创造模式下这些中间态会被创造界面当成本地改动回写成 `SetCreativeModeSlot`，就是 Shift 之后背包显示迟一拍的原因。

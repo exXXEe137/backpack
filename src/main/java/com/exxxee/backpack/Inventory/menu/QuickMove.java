@@ -105,6 +105,7 @@ public final class QuickMove {
     }
 
     private static boolean isPlayerInventory(Slot slot, Player player) {
-        return slot.container == player.getInventory();
+        // 只认主背包和快捷栏（0..35）。36.. 是盔甲和副手，Shift 不该把东西塞进去。
+        return slot.container == player.getInventory() && slot.getContainerSlot() < 36;
     }
 }

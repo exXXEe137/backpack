@@ -47,18 +47,22 @@ public final class ServerNetWorking {
 			AbstractBackpackMenu menu = ((IBackpackHost) player).getBackpackMenu(payload.windowId());
 			if (menu == null || menu.containerId != payload.windowId()) return;
 			AbstractContainerMenu playerMenu = player.containerMenu;
+			boolean creative = player.hasInfiniteMaterials();
+			boolean quickMove = payload.containerInput() == ContainerInput.QUICK_MOVE;
+
+			if (creative && !quickMove && playerMenu.getCarried().isEmpty()) {
+				applyCreativeSlots(menu, payload.creativeSlots(), player);
+				applyInventory(player, payload.creativeInventorySlots());
+				if (playerMenu != player.inventoryMenu) {
+					applyMenuSlots(playerMenu, payload.creativeMenuSlots(), player);
+				}
+				flushShelf(player);
+				menu.broadcastChanges();
+				return;
+			}
+
 			playerMenu.suppressRemoteUpdates();
 			try {
-				if (player.hasInfiniteMaterials() && playerMenu.getCarried().isEmpty()) {
-					applyCreativeSlots(menu, payload.creativeSlots(), player);
-					applyInventory(player, payload.creativeInventorySlots());
-					if (payload.containerInput() == ContainerInput.QUICK_MOVE && playerMenu != player.inventoryMenu) {
-						applyMenuSlots(playerMenu, payload.creativeMenuSlots(), player);
-					}
-					flushShelf(player);
-					menu.broadcastChanges();
-					return;
-				}
 				menu.clicked(payload.slotindex(), payload.buttonNum(), payload.containerInput(), player);
 			} finally {
 				playerMenu.resumeRemoteUpdates();
@@ -128,6 +132,8 @@ public final class ServerNetWorking {
 		for (Int2ObjectMap.Entry<ItemStack> entry : slots.int2ObjectEntrySet()) {
 			int index = entry.getIntKey();
 			if (index < 0 || index >= size) continue;
+			// 36.. = 盔甲/副手：创造模式的写包不该改这里，写进来就是把东西穿身上。
+			if (index >= 36) continue;
 			ItemStack stack = entry.getValue();
 			if (!stack.isEmpty() && (!stack.isItemEnabled(player.level().enabledFeatures()) || stack.getCount() > stack.getMaxStackSize())) {
 				continue;
