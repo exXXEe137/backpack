@@ -132,6 +132,7 @@ public final class ServerNetWorking {
 			if (!stack.isEmpty() && (!stack.isItemEnabled(player.level().enabledFeatures()) || stack.getCount() > stack.getMaxStackSize())) {
 				continue;
 			}
+			com.exxxee.backpack.ExxxeeBackpack.LOGGER.info("[backpack] apply inv write: index={} item={}", index, stack);
 			player.getInventory().setItem(index, stack.copy());
 		}
 	}

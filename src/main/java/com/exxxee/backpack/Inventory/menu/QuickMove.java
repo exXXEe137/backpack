@@ -15,10 +15,18 @@ public final class QuickMove {
     public static void moveOutOfBackpack(Player player, ItemStack stack) {
         AbstractContainerMenu host = player.containerMenu;
         if (host == null || stack.isEmpty()) return;
-        if (host != player.inventoryMenu && moveRanges(host, player, stack, false, false)) {
+        if (!isCreativePicker(host) && host != player.inventoryMenu && moveRanges(host, player, stack, false, false)) {
             return;
         }
         moveRanges(host, player, stack, true, true);
+    }
+
+    /**
+     * 创造物品栏那份菜单：前 45 格是物品列表（CONTAINER），不是真容器。
+     * 把它当箱子往里塞，东西会掉进物品列表里，服务端也拿不到。
+     */
+    private static boolean isCreativePicker(AbstractContainerMenu menu) {
+        return menu.getClass().getName().endsWith("CreativeModeInventoryScreen$ItemPickerMenu");
     }
 
     public static void offerPlayerInventoryRemainder(AbstractContainerMenu host, Player player, int slotIndex) {
