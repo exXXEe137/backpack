@@ -25,6 +25,7 @@ public class BackpackItems {
     public static final Item BACKPACK_MODULE = registerItem("backpacks/backpack_module",new Item.Properties().stacksTo(1).component(BackpackDataComponents.MODULE_INVENTORY, ModuleInventoryData.EMPTY));
 
     public static final TagKey<Item> MODULE = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID, "modules"));
+    public static final TagKey<Item> SHELF = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID, "shelves"));
 
     //物品注册方法
     private static Item registerItem(final String name, final Function<Item.Properties, Item> itemFactory, final Item.Properties properties) {

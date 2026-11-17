@@ -7,9 +7,14 @@
 
 ### 0. 模块格子只收「既不是模块、也不是背架」的物品
 
-`ModuleContainer.canPlaceItem` 从 `!stack.is(MODULE)` 改成 `!stack.is(MODULE) && !stack.is(BackpackItems.BACKPACK_SHELF)`。
+`ModuleContainer.canPlaceItem` 从 `!stack.is(MODULE)` 改成 `!stack.is(MODULE) && !stack.is(SHELF)`，两个都是物品标签，不是写死的物品。
+
+- `#exxxeebackpack:modules` —— 原有标签，`data/exxxeebackpack/tags/item/modules.json`
+- `#exxxeebackpack:shelves` —— 本次新增，`data/exxxeebackpack/tags/item/shelves.json`
 
 原规则允许把背架放进模块，等于背包套背包：那件背架带着自己的 `SHELF_MODULES`，搬出来时看起来就像「凭空多了一件跟身上一样的背架」。现在模块格子放不进去，创造模式的绝对写入也会因为 `slot.mayPlace` 校验失败而回退。
+
+用标签而不是单品：以后加第三种「不该进模块」的物品，改 JSON 就行，不用动 Java。
 
 已经在模块里的旧背架仍然拿得出来（`mayPickup` 不受影响）。
 
