@@ -17,7 +17,7 @@ public class BackpackSlot extends Slot {
 
     @Override
     public boolean isActive() {
-        return player.getItemBySlot(EquipmentSlot.CHEST).is(BackpackItems.BACKPACK_SHELF);
+        return player.getItemBySlot(EquipmentSlot.CHEST).is(BackpackItems.SHELF);
     }
 
 }

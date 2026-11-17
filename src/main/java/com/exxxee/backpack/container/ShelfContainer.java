@@ -2,7 +2,6 @@ package com.exxxee.backpack.container;
 
 import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
-import com.exxxee.backpack.item.BackpackItems;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -13,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.exxxee.backpack.item.BackpackItems.MODULE;
+import static com.exxxee.backpack.item.BackpackItems.SHELF;
 
 public class ShelfContainer implements Container {
 
@@ -23,7 +23,7 @@ public class ShelfContainer implements Container {
     public ShelfContainer(Player player) {
         this.player = player;
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        List<ItemStack> modules = chest.is(BackpackItems.BACKPACK_SHELF)
+        List<ItemStack> modules = chest.is(SHELF)
                 ? chest.getOrDefault(BackpackDataComponents.SHELF_MODULES, List.of())
                 : List.of();
         int size = modules == null ? 0 : modules.size();
@@ -79,7 +79,7 @@ public class ShelfContainer implements Container {
      */
     public void flush() {
         ItemStack chest = this.player.getItemBySlot(EquipmentSlot.CHEST);
-        if (!chest.is(BackpackItems.BACKPACK_SHELF)) return;
+        if (!chest.is(SHELF)) return;
         List<ItemStack> snapshot = new ArrayList<>(this.items.size());
         for (int i = 0; i < this.items.size(); i++) {
             snapshot.add(this.items.get(i).copy());
