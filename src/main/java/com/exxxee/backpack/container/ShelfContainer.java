@@ -4,7 +4,6 @@ import com.exxxee.backpack.Datacomponent.BackpackDataComponents;
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.item.BackpackItems;
 import net.minecraft.core.NonNullList;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -18,15 +17,15 @@ import static com.exxxee.backpack.item.BackpackItems.MODULE;
 public class ShelfContainer implements Container {
 
     private final Player player;
-    private final ItemStack shelf;
     private final NonNullList<ItemStack> items;
     private AbstractBackpackMenu menu;
 
     public ShelfContainer(Player player) {
         this.player = player;
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        this.shelf = chest.is(BackpackItems.BACKPACK_SHELF) ? chest : ItemStack.EMPTY;
-        List<ItemStack> modules = this.shelf.getOrDefault(BackpackDataComponents.SHELF_MODULES, List.of());
+        List<ItemStack> modules = chest.is(BackpackItems.BACKPACK_SHELF)
+                ? chest.getOrDefault(BackpackDataComponents.SHELF_MODULES, List.of())
+                : List.of();
         int size = modules == null ? 0 : modules.size();
         this.items = NonNullList.withSize(size, ItemStack.EMPTY);
         if (modules != null) {
@@ -73,26 +72,19 @@ public class ShelfContainer implements Container {
         this.menu = menu;
     }
 
+    /**
+     * 只写数据，不发包、不广播。
+     * 一次点击期间会被调用很多次，广播交给调用方在事务末尾统一做。
+     * 身上没有背架时直接返回：不再往脱下来那件上写。
+     */
     public void flush() {
-        ItemStack holder = this.moduleHolder();
-        if (holder.isEmpty()) return;
+        ItemStack chest = this.player.getItemBySlot(EquipmentSlot.CHEST);
+        if (!chest.is(BackpackItems.BACKPACK_SHELF)) return;
         List<ItemStack> snapshot = new ArrayList<>(this.items.size());
         for (int i = 0; i < this.items.size(); i++) {
             snapshot.add(this.items.get(i).copy());
         }
-        holder.set(BackpackDataComponents.SHELF_MODULES, snapshot);
-        if (!(this.player instanceof ServerPlayer serverPlayer)) return;
-        ItemStack chest = serverPlayer.getItemBySlot(EquipmentSlot.CHEST);
-        if (chest == holder) {
-            serverPlayer.connection.send(serverPlayer.getInventory().createInventoryUpdatePacket(EquipmentSlot.CHEST.getIndex(36)));
-        }
-        serverPlayer.containerMenu.broadcastChanges();
-    }
-
-    private ItemStack moduleHolder() {
-        ItemStack chest = this.player.getItemBySlot(EquipmentSlot.CHEST);
-        if (chest.is(BackpackItems.BACKPACK_SHELF)) return chest;
-        return this.shelf.is(BackpackItems.BACKPACK_SHELF) ? this.shelf : ItemStack.EMPTY;
+        chest.set(BackpackDataComponents.SHELF_MODULES, snapshot);
     }
 
     @Override

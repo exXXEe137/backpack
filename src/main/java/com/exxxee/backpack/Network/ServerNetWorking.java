@@ -2,6 +2,8 @@ package com.exxxee.backpack.Network;
 
 import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
+import com.exxxee.backpack.Inventory.menu.ShelfMenu;
+import com.exxxee.backpack.container.ShelfContainer;
 import com.exxxee.backpack.Network.payload.CloseWindowPayload;
 import com.exxxee.backpack.Network.payload.ModuleMenuPayload;
 import com.exxxee.backpack.Network.payload.OpenWindowPayload;
@@ -44,19 +46,38 @@ public final class ServerNetWorking {
 			ServerPlayer player = context.player();
 			AbstractBackpackMenu menu = ((IBackpackHost) player).getBackpackMenu(payload.windowId());
 			if (menu == null || menu.containerId != payload.windowId()) return;
-			if (player.hasInfiniteMaterials() && player.containerMenu.getCarried().isEmpty()) {
-				applyCreativeSlots(menu, payload.creativeSlots(), player);
-				applyInventory(player, payload.creativeInventorySlots());
-				if (payload.containerInput() == ContainerInput.QUICK_MOVE && player.containerMenu != player.inventoryMenu) {
-					applyMenuSlots(player.containerMenu, payload.creativeMenuSlots(), player);
+			AbstractContainerMenu playerMenu = player.containerMenu;
+			playerMenu.suppressRemoteUpdates();
+			try {
+				if (player.hasInfiniteMaterials() && playerMenu.getCarried().isEmpty()) {
+					applyCreativeSlots(menu, payload.creativeSlots(), player);
+					applyInventory(player, payload.creativeInventorySlots());
+					if (payload.containerInput() == ContainerInput.QUICK_MOVE && playerMenu != player.inventoryMenu) {
+						applyMenuSlots(playerMenu, payload.creativeMenuSlots(), player);
+					}
+					flushShelf(player);
+					menu.broadcastChanges();
+					return;
 				}
-				menu.broadcastChanges();
-				return;
+				menu.clicked(payload.slotindex(), payload.buttonNum(), payload.containerInput(), player);
+			} finally {
+				playerMenu.resumeRemoteUpdates();
 			}
-			menu.clicked(payload.slotindex(), payload.buttonNum(), payload.containerInput(), player);
+			flushShelf(player);
 			menu.broadcastChanges();
-			player.containerMenu.broadcastChanges();
+			playerMenu.broadcastChanges();
 		});
+	}
+
+	private static void flushShelf(ServerPlayer player) {
+		IBackpackHost host = (IBackpackHost) player;
+		for (AbstractBackpackMenu menu : host.getBackpackMenus()) {
+			if (menu instanceof ShelfMenu shelfMenu
+					&& !shelfMenu.slots.isEmpty()
+					&& shelfMenu.slots.get(0).container instanceof ShelfContainer shelf) {
+				shelf.flush();
+			}
+		}
 	}
 
 	private static void moduleInvoke(ServerboundModuleInvokePayload payload, ServerPlayNetworking.Context context) {
