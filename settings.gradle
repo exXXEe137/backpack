@@ -10,4 +10,4 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = 'createbackpack-fly-mod'
+rootProject.name = 'exsbackpack'
