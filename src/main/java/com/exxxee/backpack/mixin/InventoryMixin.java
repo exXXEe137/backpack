@@ -12,18 +12,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 /**
  * 物品栏溢出进背包。
  *
- * 只在原版 {@code add} 一点都放不进去（返回 false）时接管：本体还能叠、还有空位时不会走到这里。
- * 不打开 InventoryMixin 里原来那套 {@code extraContent}：那份数据和模块物品上的
- * MODULE_INVENTORY 不是同一份。写入在 {@link BackpackOverflow} 里，走组件，和 ModuleContainer.flush 同一条。
+ * 拦在 HEAD：先问本体两个公开方法还有没有地方放，有就交回原版；没有才试模块。
+ * 不能在 RETURN 兜底——创造模式下原版放不下时会直接把栈清零并返回 true（“创造模式不掉落”），
+ * 返回 false 的分支根本走不到，所以捡起来就凭空没了。
+ *
+ * 显式指定 slot 的调用（{@code placeItemBackInInventory} 那种）不接管，只处理 {@code add(-1, stack)}。
  */
 @Mixin(Inventory.class)
 public abstract class InventoryMixin {
 
-    @Inject(method = "add(ILnet/minecraft/world/item/ItemStack;)Z", at = @At("RETURN"), cancellable = true)
+    @Inject(method = "add(ILnet/minecraft/world/item/ItemStack;)Z", at = @At("HEAD"), cancellable = true)
     private void backpack$overflow(final int slot, final ItemStack stack, final CallbackInfoReturnable<Boolean> cir) {
-        if (cir.getReturnValueZ()) return;
-        Player player = ((Inventory) (Object) this).player;
-        if (player == null) return;
+        if (stack.isEmpty() || slot >= 0) return;
+
+        Inventory inventory = (Inventory) (Object) this;
+        Player player = inventory.player;
+        if (player == null || player.level().isClientSide()) return;
+
+        if (inventory.getSlotWithRemainingSpace(stack) != -1) return;
+        if (inventory.getFreeSlot() != -1) return;
+
         if (BackpackOverflow.insert(player, stack)) {
             cir.setReturnValue(true);
         }
