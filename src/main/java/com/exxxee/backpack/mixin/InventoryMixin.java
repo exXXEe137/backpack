@@ -1,12 +1,15 @@
 package com.exxxee.backpack.mixin;
 
 import com.exxxee.backpack.container.BackpackOverflow;
+import com.exxxee.backpack.container.BackpackRecipeSupport;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
@@ -35,5 +38,11 @@ public abstract class InventoryMixin {
         if (BackpackOverflow.insert(player, stack)) {
             cir.setReturnValue(true);
         }
+    }
+
+    /** 配方书的可用材料：把已装备模块里的物品也算上。 */
+    @Inject(method = "fillStackedContents(Lnet/minecraft/world/entity/player/StackedItemContents;)V", at = @At("TAIL"))
+    private void backpack$accountModules(final StackedItemContents contents, final CallbackInfo ci) {
+        BackpackRecipeSupport.account(((Inventory) (Object) this).player, contents);
     }
 }
