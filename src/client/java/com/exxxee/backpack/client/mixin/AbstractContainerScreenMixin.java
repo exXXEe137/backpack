@@ -76,6 +76,10 @@ public abstract class AbstractContainerScreenMixin implements IBackpackHost, Bac
         }
     }
 
+    @Override public AbstractBackpackWindows<?> getBackpackWindow(int windowId) {
+        return this.backpackWindows.get(windowId);
+    }
+
 
     @Inject(method = "init", at = @At("TAIL"))
     public void backpack$init (CallbackInfo ci) {

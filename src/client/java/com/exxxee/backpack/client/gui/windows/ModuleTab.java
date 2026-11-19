@@ -50,7 +50,8 @@ public class ModuleTab extends ImageButton {
             ClientPlayNetworking.send(new ServerboundModuleInvokePayload(moduleMenu.containerId, true));
         }
         if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
-        if (this.window != null) return;
+        // 以宿主表为准，不看自己缓存的字段：窗口可能已经被 unselect / 关包摘掉了。
+        if (host.getBackpackWindow(moduleMenu.containerId) != null) return;
         AbstractBackpackWindows<?> created = MenuWindows.window(moduleMenu);
         if (created == null) return;
         this.window = created;
@@ -65,6 +66,7 @@ public class ModuleTab extends ImageButton {
             moduleMenu.invoked = false;
             ClientPlayNetworking.send(new ServerboundModuleInvokePayload(moduleMenu.containerId, false));
         }
+        this.window = null;
         if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return;
         host.setBackpackWindow(moduleMenu.containerId, null);
     }
