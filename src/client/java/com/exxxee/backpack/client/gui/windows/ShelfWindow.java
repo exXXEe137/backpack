@@ -140,4 +140,38 @@ public class ShelfWindow extends AbstractBackpackWindows<ShelfMenu> {
         }
     }
 
+    @Override
+    public boolean mouseScrolled (final double x, final double y, final double scrollX, final double scrollY) {
+        if (this.overTabColumn(x, y)) return this.scrollTab(scrollY);
+        return super.mouseScrolled(x, y, scrollX, scrollY);
+    }
+
+    private boolean overTabColumn(final double x, final double y) {
+        int count = this.moduleTabs.size();
+        if (count == 0) return false;
+        int left = this.windowLeft - 8;
+        int top = this.windowTop + 6;
+        int right = left + ModuleTab.width;
+        int bottom = top + (count - 1) * 18 + ModuleTab.height;
+        return x >= left && x < right && y >= top && y < bottom;
+    }
+
+    boolean scrollTab(final double scrollY) {
+        if (this.selectedTab == null || scrollY == 0) return false;
+        int size = this.moduleTabs.size();
+        if (size == 0) return false;
+        int direction = scrollY < 0 ? 1 : -1;
+        int start = this.selectedTab.index();
+        int next = start;
+        do {
+            next = Math.floorMod(next + direction, size);
+            if (next == start) return false;
+        } while (this.moduleTabs.get(next) == null);
+        ModuleTab tab = this.moduleTabs.get(next);
+        this.selectedTab.unselect();
+        tab.select();
+        this.selectedTab = tab;
+        return true;
+    }
+
 }

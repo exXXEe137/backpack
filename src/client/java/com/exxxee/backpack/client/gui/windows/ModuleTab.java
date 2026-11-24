@@ -17,8 +17,8 @@ import net.minecraft.resources.Identifier;
 public class ModuleTab extends ImageButton {
 
     private static final WidgetSprites sprites = new WidgetSprites(Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID,"shelf_tab"), Identifier.fromNamespaceAndPath(ExxxeeBackpack.MOD_ID,"shelf_tab_selected"));
-    private static final int width = 10;
-    private static final int height = 19;
+    static final int width = 10;
+    static final int height = 19;
     private final int index;
     private boolean selected = false;
     private AbstractBackpackWindows<?> window;

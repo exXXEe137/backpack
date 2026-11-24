@@ -1,7 +1,11 @@
 package com.exxxee.backpack.client.gui.windows;
 
 import com.exxxee.backpack.ExxxeeBackpack;
+import com.exxxee.backpack.Inventory.menu.AbstractBackpackMenu;
 import com.exxxee.backpack.Inventory.menu.ModuleMenu;
+import com.exxxee.backpack.Inventory.menu.ShelfMenu;
+import com.exxxee.backpack.api.IBackpackHost;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -32,7 +36,24 @@ public class ModuleWindow extends AbstractBackpackWindows<ModuleMenu> {
     protected void repositionElements() {
         super.repositionElements();
         this.windowLeft -= SHELF_AND_TAB;
-//        this.windowRight -= SHELF_AND_TAB;
+        this.windowRight -= SHELF_AND_TAB;
+    }
+
+    @Override
+    public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
+        if (super.mouseScrolled(x, y, scrollX, scrollY)) return true;
+        ShelfWindow shelf = this.shelfWindow();
+        if (shelf == null) return false;
+        return shelf.scrollTab(scrollY);
+    }
+
+    private ShelfWindow shelfWindow() {
+        if (!(Minecraft.getInstance().screen instanceof BackpackWindowHost host)) return null;
+        for (AbstractBackpackMenu menu : ((IBackpackHost) Minecraft.getInstance().player).getBackpackMenus()) {
+            if (!(menu instanceof ShelfMenu shelfMenu)) continue;
+            if (host.getBackpackWindow(shelfMenu.containerId) instanceof ShelfWindow shelfWindow) return shelfWindow;
+        }
+        return null;
     }
 
 }
